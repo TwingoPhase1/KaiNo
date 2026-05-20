@@ -22,7 +22,8 @@ export async function GET() {
       { expiresIn: '5m' }
     );
 
-    cookies().set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: 'kaino-auth-challenge',
       value: challengeToken,
       httpOnly: true,

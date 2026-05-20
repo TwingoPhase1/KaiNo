@@ -18,10 +18,10 @@
     "framer-motion": "^11.2.10",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.378.0",
-    "next": "^14.2.35",
+    "next": "15.5.18",
     "pg": "^8.21.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "wa-sqlite": "^0.9.14",
@@ -33,12 +33,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.12.12",
     "@types/pg": "^8.20.0",
-    "@types/react": "^18.3.2",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.19",
     "electric-sql": "^0.11.2",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.35",
+    "eslint-config-next": "15.5.18",
     "next-pwa": "^5.6.0",
     "playwright": "^1.60.0",
     "postcss": "^8.4.49",
@@ -50,6 +50,7 @@
     "@next/eslint-plugin-next": {
       "glob": "^10.4.7"
     },
+    "lodash": "^4.17.23",
     "lodash.pick": "^4.4.0",
     "@typescript-eslint/typescript-estree": {
       "minimatch": "^9.0.5"

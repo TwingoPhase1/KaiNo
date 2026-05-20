@@ -30,7 +30,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     // 1. Authenticate administrative session via JWT cookie
-    const tokenCookie = cookies().get('kaino-admin-token');
+    const cookieStore = await cookies();
+    const tokenCookie = cookieStore.get('kaino-admin-token');
     if (!tokenCookie) {
       return NextResponse.json({ error: 'Unauthorized: Admin session required' }, { status: 401 });
     }

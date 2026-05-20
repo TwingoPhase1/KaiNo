@@ -9,7 +9,7 @@ RUN apk add --no-cache libc6-compat
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --silent
+RUN npm ci --silent --legacy-peer-deps
 
 # Builder stage - compile TypeScript and build Next.js
 FROM base AS builder

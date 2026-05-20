@@ -8,7 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kaino-default-secret-key-12345';
 
 export async function GET() {
   try {
-    const tokenCookie = cookies().get('kaino-admin-token');
+    const cookieStore = await cookies();
+    const tokenCookie = cookieStore.get('kaino-admin-token');
     if (!tokenCookie) {
       return NextResponse.json({ authenticated: false });
     }

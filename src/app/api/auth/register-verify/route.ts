@@ -16,7 +16,8 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Get the challenge cookie
-    const challengeCookie = cookies().get('kaino-auth-challenge');
+    const cookieStore = await cookies();
+    const challengeCookie = cookieStore.get('kaino-auth-challenge');
     if (!challengeCookie) {
       return NextResponse.json({ error: 'Authentication challenge expired or missing' }, { status: 400 });
     }
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
     );
 
     // Set secure HTTP-Only session cookie
-    cookies().set({
+    cookieStore.set({
       name: 'kaino-admin-token',
       value: token,
       httpOnly: true,
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     });
 
     // Clear challenge cookie
-    cookies().delete('kaino-auth-challenge');
+    cookieStore.delete('kaino-auth-challenge');
 
     return NextResponse.json({ success: true, message: 'Passkey registered successfully' });
   } catch (error: any) {
