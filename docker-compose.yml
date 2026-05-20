@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=proxy_password
+      - POSTGRES_DB=kaino
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    command: postgres -c wal_level=logical
+    networks:
+      - kaino-network
+
+  electric:
+    image: electricsql/electric:0.11
+    environment:
+      - DATABASE_URL=postgresql://postgres:proxy_password@postgres:5432/kaino
+      - DATABASE_USE_IPV6=false
+      - LOGICAL_PUBLISHER_HOST=electric
+      - PG_PROXY_PASSWORD=proxy_password
+      - AUTH_MODE=insecure
+    ports:
+      - "5133:5133"
+      - "65432:65432"
+    depends_on:
+      - postgres
+    networks:
+      - kaino-network
+
+  kaino:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:proxy_password@postgres:5432/kaino
+      - NEXT_PUBLIC_ELECTRIC_URL=http://localhost:5133
+    depends_on:
+      - postgres
+      - electric
+    restart: unless-stopped
+    networks:
+      - kaino-network
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  kaino-network:
+    driver: bridge

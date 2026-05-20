@@ -1,0 +1,66 @@
+# Dependency directories
+node_modules/
+/jspm_packages/
+
+# Next.js build and output
+.next/
+/out/
+/build/
+
+# Production build and cache
+.next-pwa/
+public/sw.js
+public/workbox-*.js
+public/sw.js.map
+public/workbox-*.js.map
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local environment files (Secrets)
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+.env*.local
+
+# SQLite database local caches & transient storage
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+postgres-data/
+
+# IDE configurations
+.vscode/
+.vscode-test/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Agent caches and AI tooling temporary files
+ia_caches/
+.gemini/
+.antigravity/
+brain/
+scratch/

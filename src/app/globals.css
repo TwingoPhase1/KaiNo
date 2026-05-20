@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    
+    /* Default / Generic variables */
+    --radius: 6px;
+    --font-family: 'JetBrains Mono', 'Geist', monospace, system-ui, sans-serif;
+    --accent-rgb: 99, 102, 241; /* Indigo */
+    --border-width: 1px;
+    --transition-curve: linear;
+    --transition-duration: 0ms;
+    --card-bg: rgba(15, 23, 42, 0.4);
+    --card-border: rgba(51, 65, 85, 0.5);
+    --card-shadow: none;
+  }
+
+  /* ==========================================
+     THEME OVERRIDES (DEVICE-AWARE MATRIX)
+     ========================================== */
+
+  /* 1. iOS Theme (Apple Style) */
+  .theme-ios {
+    --radius: 12px;
+    --font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --accent-rgb: 0, 122, 255; /* Apple System Blue */
+    --border-width: 0.5px;
+    --transition-curve: cubic-bezier(0.25, 1, 0.5, 1); /* iOS Spring Curve */
+    --transition-duration: 400ms;
+    --card-bg: rgba(28, 28, 30, 0.7);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  /* 2. Samsung Theme (One UI Style) */
+  .theme-samsung {
+    --radius: 24px;
+    --font-family: 'Samsung One', 'Segoe UI', Roboto, sans-serif;
+    --accent-rgb: 3, 102, 214; /* One UI Blue */
+    --border-width: 1px;
+    --transition-curve: cubic-bezier(0.4, 0, 0.2, 1); /* One UI Scale/Ease */
+    --transition-duration: 300ms;
+    --card-bg: rgba(33, 37, 41, 0.95);
+    --card-border: rgba(255, 255, 255, 0.05);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  /* 3. Android Theme (Material Pixel Style) */
+  .theme-android {
+    --radius: 16px;
+    --font-family: 'Product Sans', 'Roboto', 'Google Sans', sans-serif;
+    --accent-rgb: 103, 80, 164; /* Material You Pastel Violet */
+    --border-width: 0px;
+    --transition-curve: cubic-bezier(0.2, 0, 0, 1); /* Material Ripple/Fast Ease */
+    --transition-duration: 250ms;
+    --card-bg: rgba(30, 26, 38, 1); /* Pastel/Darker violet tone */
+    --card-border: transparent;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 4. Fallback / Desktop (Generic Tech Style) */
+  .theme-generic {
+    --radius: 6px;
+    --font-family: 'JetBrains Mono', 'Geist', monospace, sans-serif;
+    --accent-rgb: 79, 70, 229; /* Indigo */
+    --border-width: 1px;
+    --transition-curve: linear;
+    --transition-duration: 100ms;
+    --card-bg: rgba(15, 23, 42, 0.4);
+    --card-border: rgba(51, 65, 85, 0.5);
+    --card-shadow: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-family: var(--font-family);
+    transition-timing-function: var(--transition-curve);
+  }
+  body {
+    @apply bg-slate-950 text-slate-100;
+    font-family: var(--font-family);
+    overflow-x: hidden;
+  }
+}
+
+/* ==========================================
+   THEME UTILITIES & MICRO-ANIMATIONS
+   ========================================== */
+
+/* Theme Card base */
+.theme-card {
+  background: var(--card-bg);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-duration) var(--transition-curve);
+}
+
+.theme-ios .theme-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.theme-samsung .theme-card {
+  margin: 0.5rem;
+}
+
+/* Theme Button base */
+.theme-btn {
+  border-radius: var(--radius);
+  transition: transform var(--transition-duration) var(--transition-curve), opacity 0.2s ease;
+}
+
+.theme-ios .theme-btn:active {
+  transform: scale(0.96); /* iOS press shrinking */
+}
+
+.theme-samsung .theme-btn:active {
+  transform: scale(0.94); /* Samsung UI deeper shrink */
+}
+
+/* Theme Custom Checkbox */
+.theme-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--transition-curve);
+}
+
+/* Circular iOS Checkbox filled with Blue on checked */
+.theme-ios .checkmark {
+  border-radius: 50%;
+}
+.theme-ios input:checked ~ .checkmark {
+  background-color: rgb(0, 122, 255);
+  border-color: rgb(0, 122, 255);
+  transform: scale(1.1);
+}
+
+/* Samsung One UI large card checkboxes */
+.theme-samsung .checkmark {
+  border-radius: 6px;
+  height: 24px;
+  width: 24px;
+}
+.theme-samsung input:checked ~ .checkmark {
+  background-color: rgb(3, 102, 214);
+  border-color: rgb(3, 102, 214);
+}
+
+/* Android pill shapes & checkboxes */
+.theme-android .checkmark {
+  border-radius: 8px;
+  height: 20px;
+  width: 20px;
+}
+.theme-android input:checked ~ .checkmark {
+  background-color: rgb(103, 80, 164);
+  border-color: rgb(103, 80, 164);
+}
+
+/* Android Ripple Click Effect */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.ripple:active::after {
+  transform: scale(0, 0);
+  opacity: .3;
+  transition: 0s;
+}
