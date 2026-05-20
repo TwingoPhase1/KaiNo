@@ -34,7 +34,8 @@ export function parseShoppingItem(input: string): ParsedItem {
 
   // 1. Price Extraction
   // Scan for numeric values immediately followed by €, $, EUR, or euros (e.g., 5€, 12.50€, 0.99 EUR)
-  const priceRegex = /(\d+(?:[.,]\d+)?)\s*(?:€|\$|EUR\b|euros\b|euro\b)/i;
+  // Bounded digit count (max 8 digits before, 4 after decimal) and space (max 4) to eliminate ReDoS
+  const priceRegex = /(\d{1,8}(?:[.,]\d{1,4})?)\s{0,4}(?:€|\$|EUR\b|euros\b|euro\b)/i;
   const priceMatch = buffer.match(priceRegex);
   if (priceMatch) {
     price = parseFloat(priceMatch[1].replace(',', '.'));
@@ -43,7 +44,8 @@ export function parseShoppingItem(input: string): ParsedItem {
 
   // 2. Assignment (Target) Extraction
   // Scan for indicators such as "pour", "by", "for", "par" followed by a name
-  const assignRegex = /\b(?:pour|by|for|par)\s+([a-zA-ZÀ-ÿ]+)/i;
+  // Bounded spaces and name character lengths to prevent ReDoS
+  const assignRegex = /\b(?:pour|by|for|par)\s{1,4}([a-zA-ZÀ-ÿ]{1,30})/i;
   const assignMatch = buffer.match(assignRegex);
   if (assignMatch) {
     assignedTo = assignMatch[1];
@@ -52,7 +54,7 @@ export function parseShoppingItem(input: string): ParsedItem {
 
   // 3. Quantity and Unit Extraction
   // Match "N pack(s) of" or "N pack(s)"
-  const packRegex = /\b(\d+)\s*(?:pack|packs)(?:\s+of)?\b/i;
+  const packRegex = /\b(\d{1,8})\s{0,4}(?:pack|packs)(?:\s{1,4}of)?\b/i;
   const packMatch = buffer.match(packRegex);
   if (packMatch) {
     quantity = `${packMatch[1]} packs`;
@@ -60,8 +62,8 @@ export function parseShoppingItem(input: string): ParsedItem {
     buffer = buffer.replace(packMatch[0], '').trim();
   } else {
     // Match standard units: g, kg, l, ml, x (e.g., 500g, 1.5L, x2)
-    // Note: look for boundaries or end of string so we don't match letters within words
-    const unitRegex = /\b(\d+(?:[.,]\d+)?)\s*(g|kg|l|ml|x)\b/i;
+    // Bounded digit lengths and spaces to guarantee linear execution complexity
+    const unitRegex = /\b(\d{1,8}(?:[.,]\d{1,4})?)\s{0,4}(g|kg|l|ml|x)\b/i;
     const unitMatch = buffer.match(unitRegex);
     if (unitMatch) {
       const val = unitMatch[1].replace(',', '.');
@@ -71,7 +73,7 @@ export function parseShoppingItem(input: string): ParsedItem {
       buffer = buffer.replace(unitMatch[0], '').trim();
     } else {
       // Match simple leading number as quantity (e.g. "3 " at the start)
-      const numStartRegex = /^(\d+(?:[.,]\d+)?)\s+/;
+      const numStartRegex = /^(\d{1,8}(?:[.,]\d{1,4})?)\s{1,4}/;
       const numStartMatch = buffer.match(numStartRegex);
       if (numStartMatch) {
         quantity = numStartMatch[1].replace(',', '.');
@@ -86,14 +88,12 @@ export function parseShoppingItem(input: string): ParsedItem {
   }
 
   // 4. Article Name Clean-up Rule
-  // Trim extra spaces and strip common leading/trailing conjunctions and stop-words (e.g., "de", "d'", "un", "une", "des", "of")
-  let name = buffer;
-  // Remove leading stop-words
-  name = name.replace(/^(?:de|d'|du|des|le|la|les|l'|un|une|of)\s+/i, '').trim();
-  // Remove trailing stop-words/conjunctions
-  name = name.replace(/\s+(?:de|d'|du|des|le|la|les|l'|un|une|of)$/i, '').trim();
-  // Replace multiple spaces with a single space
-  name = name.replace(/\s+/g, ' ').trim();
+  // Replace multiple spaces with a single space first to prevent backtracking in subsequent regexes
+  let name = buffer.replace(/\s+/g, ' ').trim();
+  // Remove leading stop-words using a strictly linear single-space match
+  name = name.replace(/^(?:de|d'|du|des|le|la|les|l'|un|une|of)\s/i, '').trim();
+  // Remove trailing stop-words/conjunctions using a strictly linear single-space match anchored at the end
+  name = name.replace(/\s(?:de|d'|du|des|le|la|les|l'|un|une|of)$/i, '').trim();
 
   return {
     name,
