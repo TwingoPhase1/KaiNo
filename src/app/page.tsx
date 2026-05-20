@@ -51,14 +51,23 @@ export default function Home() {
       try {
         // A. If setup is required, redirect to /setup-admin
         const setupResp = await fetch('/api/setup');
-        if (setupResp.ok) {
-          const setupData = await setupResp.json();
-          if (setupData.setup_required) {
-            if (isMounted) {
-              router.push('/setup-admin');
-            }
-            return;
+        if (!setupResp.ok) {
+          const data = await setupResp.json();
+          console.error('❌ Setup check failed:', data);
+          if (isMounted) {
+            setAuthError(`${data.error || 'Erreur vérification setup'} (${data.details || ''})`);
+            setLoading(false);
+            setIsAuthenticated(false);
           }
+          return;
+        }
+        const setupData = await setupResp.json();
+        if (setupData.setup_required) {
+          if (isMounted) {
+            console.log('🔄 Setup required, redirecting to /setup-admin');
+            router.push('/setup-admin');
+          }
+          return;
         }
 
         // B. Check session status
@@ -77,7 +86,12 @@ export default function Home() {
           }
         }
       } catch (err) {
-        console.error('Failed to run initial auth/setup checks:', err);
+        console.error('❌ Failed to run initial auth/setup checks:', err);
+        if (isMounted) {
+          setAuthError(`Erreur initialisation: ${err instanceof Error ? err.message : String(err)}`);
+          setLoading(false);
+          setIsAuthenticated(false);
+        }
       }
 
       // If we are not authenticated, update state to show authentication overlay
@@ -117,7 +131,9 @@ export default function Home() {
     try {
       const respOptions = await fetch('/api/auth/login-options');
       if (!respOptions.ok) {
-        throw new Error(t('error_fetch_options'));
+        const data = await respOptions.json();
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_fetch_options');
+        throw new Error(errorMsg);
       }
       const options = await respOptions.json();
 
@@ -138,7 +154,8 @@ export default function Home() {
 
       if (!respVerify.ok) {
         const data = await respVerify.json();
-        throw new Error(data.error || t('error_verify_passkey'));
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_verify_passkey');
+        throw new Error(errorMsg);
       }
 
       // Success! Fetch status to update user state
@@ -179,7 +196,8 @@ export default function Home() {
       const respOptions = await fetch(`/api/auth/register-options?username=${encodeURIComponent(regUsername.trim())}`);
       if (!respOptions.ok) {
         const data = await respOptions.json();
-        throw new Error(data.error || t('error_register_options'));
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_options');
+        throw new Error(errorMsg);
       }
       const options = await respOptions.json();
 
@@ -199,7 +217,8 @@ export default function Home() {
 
       if (!respVerify.ok) {
         const data = await respVerify.json();
-        throw new Error(data.error || t('error_register_verify'));
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_verify');
+        throw new Error(errorMsg);
       }
 
       // Success! Fetch status to update user state
