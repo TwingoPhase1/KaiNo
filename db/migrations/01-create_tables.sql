@@ -9,6 +9,16 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at TIMESTAMPTZ NOT NULL
 );
 
+-- Table: admin_credentials (Passkey Credentials)
+CREATE TABLE IF NOT EXISTS admin_credentials (
+    id TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    public_key TEXT NOT NULL,
+    counter BIGINT NOT NULL DEFAULT 0,
+    transports TEXT,
+    created_at TIMESTAMPTZ NOT NULL
+);
+
 -- Table: lists (Shopping Lists)
 CREATE TABLE IF NOT EXISTS lists (
     id UUID PRIMARY KEY,
@@ -39,6 +49,7 @@ CREATE TABLE IF NOT EXISTS article_references (
 
 -- Electrify tables for synchronization via ElectricSQL
 ALTER TABLE admin_users ENABLE ELECTRIC;
+ALTER TABLE admin_credentials ENABLE ELECTRIC;
 ALTER TABLE lists ENABLE ELECTRIC;
 ALTER TABLE list_items ENABLE ELECTRIC;
 ALTER TABLE article_references ENABLE ELECTRIC;

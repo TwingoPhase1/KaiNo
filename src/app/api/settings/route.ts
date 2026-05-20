@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getDefaultLanguage, setDefaultLanguage } from '@/lib/settings-db';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'kaino-default-secret-key-12345';
+import { getWebAuthnConfig } from '@/lib/get-webauthn-config';
 
 const SUPPORTED_LANGUAGES = ['fr', 'en', 'es', 'de', 'it'];
 
@@ -29,6 +28,8 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const { jwtSecret } = await getWebAuthnConfig();
+
     // 1. Authenticate administrative session via JWT cookie
     const cookieStore = await cookies();
     const tokenCookie = cookieStore.get('kaino-admin-token');
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      jwt.verify(tokenCookie.value, JWT_SECRET);
+      jwt.verify(tokenCookie.value, jwtSecret);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
     }

@@ -54,16 +54,15 @@ export default function SetupAdmin() {
     setError(null);
 
     try {
-      // 1. Get registration options from server
       const respOptions = await fetch(`/api/auth/register-options?username=${encodeURIComponent(username.trim())}`);
       if (!respOptions.ok) {
         const data = await respOptions.json();
-        throw new Error(data.error || t('error_register_options'));
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_options');
+        throw new Error(errorMsg);
       }
 
       const options = await respOptions.json();
 
-      // 2. Trigger browser Passkey creation prompt
       let registrationResponse;
       try {
         registrationResponse = await startRegistration(options);
@@ -72,7 +71,6 @@ export default function SetupAdmin() {
         throw new Error(t('register_error_cancelled'));
       }
 
-      // 3. Verify registration response on server
       const respVerify = await fetch('/api/auth/register-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,10 +79,10 @@ export default function SetupAdmin() {
 
       if (!respVerify.ok) {
         const data = await respVerify.json();
-        throw new Error(data.error || t('error_register_verify'));
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_verify');
+        throw new Error(errorMsg);
       }
 
-      // Successful registration! Set flag and redirect
       localStorage.setItem('kaino-setup-done', '1');
       router.push('/');
     } catch (err: any) {

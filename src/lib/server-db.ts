@@ -7,5 +7,17 @@ export const pool = new Pool({
 });
 
 export async function query(text: string, params?: any[]) {
-  return pool.query(text, params);
+  try {
+    return await pool.query(text, params);
+  } catch (error: any) {
+    console.error('Database query failed:', {
+      query: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      params: params ? params.map(p => typeof p === 'string' && p.length > 50 ? p.substring(0, 50) + '...' : p) : [],
+      error: error.message,
+      code: error.code,
+      detail: error.detail,
+      table: error.table
+    });
+    throw new Error(`Database error: ${error.message} (code: ${error.code || 'unknown'})`);
+  }
 }
