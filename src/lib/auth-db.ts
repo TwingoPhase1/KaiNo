@@ -11,6 +11,17 @@ export interface PasskeyCredential {
 
 export async function ensureAuthTables() {
   try {
+    // 1. Create admin_users table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id UUID PRIMARY KEY,
+        username TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL
+      );
+    `);
+
+    // 2. Create admin_credentials table if it doesn't exist
     await query(`
       CREATE TABLE IF NOT EXISTS admin_credentials (
         id TEXT PRIMARY KEY,
@@ -21,9 +32,56 @@ export async function ensureAuthTables() {
         created_at TIMESTAMPTZ NOT NULL
       );
     `);
+
+    // 3. Create lists table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS lists (
+        id UUID PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL
+      );
+    `);
+
+    // 4. Create list_items table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS list_items (
+        id UUID PRIMARY KEY,
+        list_id UUID NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        quantity TEXT,
+        price REAL,
+        assigned_to TEXT,
+        is_checked BOOLEAN NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `);
+
+    // 5. Create article_references table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS article_references (
+        id UUID PRIMARY KEY,
+        article_name TEXT NOT NULL,
+        last_price REAL,
+        suggested_category TEXT,
+        updated_at TIMESTAMPTZ NOT NULL
+      );
+    `);
+
+    // 6. Electrify tables progressively and tolerate unavailability
+    const tables = ['admin_users', 'admin_credentials', 'lists', 'list_items', 'article_references'];
+    for (const table of tables) {
+      try {
+        await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
+        console.log(`🔌 Table ${table} successfully electrified!`);
+      } catch (electricError: any) {
+        // Suppress error if already electrified or if Electric functions don't exist yet
+        console.log(`ℹ️ ElectricSQL not ready yet or table ${table} already electrified: ${electricError.message}`);
+      }
+    }
+
   } catch (error: any) {
-    console.error('❌ Failed to ensure authentication tables:', error);
-    throw new Error(`Failed to initialize authentication tables: ${error.message}`);
+    console.error('❌ Failed to ensure authentication and application tables:', error);
+    throw new Error(`Failed to initialize database tables: ${error.message}`);
   }
 }
 
