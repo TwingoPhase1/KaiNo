@@ -19,17 +19,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Bad Request: Missing filename or data' }, { status: 400 });
     }
 
+    // Sanitize filename to prevent path traversal attacks
+    const sanitizedFilename = path.basename(filename);
+    if (!sanitizedFilename || sanitizedFilename === '.' || sanitizedFilename === '..') {
+      return NextResponse.json({ error: 'Bad Request: Invalid filename' }, { status: 400 });
+    }
+
     // Extract the raw base64 data from the canvas Data URL
     // Format: data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...
     const base64Data = data.replace(/^data:image\/png;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
     // Save the PNG file to the public directory
-    const publicPath = path.join(process.cwd(), 'public', filename);
+    const publicPath = path.join(process.cwd(), 'public', sanitizedFilename);
     fs.writeFileSync(publicPath, buffer);
 
     console.log(`[PWA Dev Tool] Successfully saved PNG icon to ${publicPath}`);
-    return NextResponse.json({ success: true, message: `Saved ${filename} successfully` });
+    return NextResponse.json({ success: true, message: `Saved ${sanitizedFilename} successfully` });
   } catch (error: any) {
     console.error('❌ [PWA Dev Tool] Failed to save base64 PNG icon:', error);
     return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
