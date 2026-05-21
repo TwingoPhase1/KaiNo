@@ -12,8 +12,11 @@ export function useTheme() {
   useEffect(() => {
     // 1. Check window.__THEME__ set by layout blocking script or document class
     if (typeof window !== 'undefined') {
-      const detectedTheme = (window as any).__THEME__ || document.documentElement.className;
-      if (detectedTheme && ['theme-ios', 'theme-samsung', 'theme-android', 'theme-generic'].includes(detectedTheme)) {
+      const classes = (window as any).__THEME__ || document.documentElement.className;
+      const detectedTheme = classes.split(' ').find((c: string) => 
+        ['theme-ios', 'theme-samsung', 'theme-android', 'theme-generic'].includes(c)
+      );
+      if (detectedTheme) {
         setTheme(detectedTheme as AppTheme);
         return;
       }
@@ -22,10 +25,10 @@ export function useTheme() {
     // 2. Client-side fallback detection if not set earlier
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
     let resolvedTheme: AppTheme = 'theme-generic';
-    if (/iPhone|iPad|iPod/i.test(ua) || (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-      resolvedTheme = 'theme-ios';
-    } else if (/Samsung|SamsungBrowser/i.test(ua)) {
+    if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
       resolvedTheme = 'theme-samsung';
+    } else if (/iPhone|iPad|iPod/i.test(ua) || (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+      resolvedTheme = 'theme-ios';
     } else if (/Android/i.test(ua)) {
       resolvedTheme = 'theme-android';
     }

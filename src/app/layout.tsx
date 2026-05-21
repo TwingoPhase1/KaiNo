@@ -32,6 +32,26 @@ export default function RootLayout({
         <link rel="icon" href="/icon-192.svg" />
         <link rel="apple-touch-icon" href="/icon-512.svg" />
         
+        {/* Service Worker PWA Registration Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(reg) {
+                      console.log('SW registered successfully with scope:', reg.scope);
+                    },
+                    function(err) {
+                      console.log('SW registration failed:', err);
+                    }
+                  );
+                });
+              }
+            `
+          }}
+        />
+        
         {/* Anti-FOUC Device Detection and Sniffing Blocking Script */}
         <script
           dangerouslySetInnerHTML={{
@@ -41,16 +61,35 @@ export default function RootLayout({
                   var ua = navigator.userAgent || '';
                   var theme = 'theme-generic';
                   
-                  if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-                    theme = 'theme-ios';
-                  } else if (/Samsung|SamsungBrowser/i.test(ua)) {
+                  if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
                     theme = 'theme-samsung';
+                  } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                    theme = 'theme-ios';
                   } else if (/Android/i.test(ua)) {
                     theme = 'theme-android';
                   }
                   
-                  document.documentElement.className = theme;
+                  // Auto-generate dark theme based on system preference
+                  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var classes = theme;
+                  if (isDark) {
+                    classes += ' dark';
+                  }
+                  
+                  document.documentElement.className = classes;
                   window.__THEME__ = theme;
+                  
+                  // Dynamic preference watching
+                  if (window.matchMedia) {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                      var activeDark = e.matches;
+                      var newClasses = theme;
+                      if (activeDark) {
+                        newClasses += ' dark';
+                      }
+                      document.documentElement.className = newClasses;
+                    });
+                  }
                 } catch (e) {
                   console.error('Theme engine error:', e);
                 }

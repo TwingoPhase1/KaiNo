@@ -95,34 +95,34 @@ export default function SetupAdmin() {
 
   if (loadingTranslations) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-indigo-400" />
-          <div className="text-slate-400 font-medium animate-pulse">Kaino...</div>
+          <Loader2 className="h-10 w-10 animate-spin text-indigo-500 dark:text-indigo-400" />
+          <div className="text-muted-foreground font-medium animate-pulse">Kaino...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4">
-      <Card className="w-full max-w-md border-slate-700 bg-slate-900/80 backdrop-blur-xl text-slate-100 shadow-2xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative">
+      <Card className="w-full max-w-md border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 dark:from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
         <CardHeader className="text-center pb-4">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
             <Fingerprint className="h-8 w-8 text-indigo-400 animate-pulse" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-100 to-white bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-indigo-500 to-slate-900 dark:from-indigo-200 dark:via-indigo-100 dark:to-white bg-clip-text text-transparent">
             {t('setup_title')}
           </CardTitle>
-          <CardDescription className="text-slate-400 mt-2">
+          <CardDescription className="text-slate-500 dark:text-slate-400 mt-2">
             {t('setup_subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreatePasskey} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium text-slate-300">
+              <label htmlFor="username" className="text-sm font-medium text-slate-600 dark:text-slate-300">
                 {t('setup_username_label')}
               </label>
               <Input
@@ -132,13 +132,13 @@ export default function SetupAdmin() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loading}
-                className="bg-slate-800/80 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                className="bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder={t('setup_username_placeholder')}
               />
             </div>
 
             {error && (
-              <div className="text-sm bg-rose-950/50 border border-rose-800/50 text-rose-300 p-3 rounded-lg flex items-center gap-2">
+              <div className="text-sm bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/50 text-rose-600 dark:text-rose-300 p-3 rounded-lg flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
                 <p>{error}</p>
               </div>

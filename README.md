@@ -1,4 +1,6 @@
-# 🛒 Kaino v1.0.0 — Liste de Courses Collaborative, Offline-First & Auto-Adaptative
+# 🛒 Kaino v0.03 — Liste de Courses Collaborative, Offline-First & Auto-Adaptative
+
+
 
 Bienvenue sur **Kaino**, une plateforme collaborative de gestion de listes de courses de classe entreprise, conçue avec une philosophie **Local-First / Offline-First** et propulsée par un moteur de thèmes dynamiques s'adaptant à l'ergonomie native de votre appareil.
 

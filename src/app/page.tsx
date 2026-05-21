@@ -255,10 +255,10 @@ export default function Home() {
 
   if (loading || loadingTranslations) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-indigo-400" />
-          <div className="text-slate-400 font-medium animate-pulse">{t('initialization')}</div>
+          <Loader2 className="h-10 w-10 animate-spin text-indigo-500 dark:text-indigo-400" />
+          <div className="text-muted-foreground font-medium animate-pulse">{t('initialization')}</div>
         </div>
       </div>
     );
@@ -267,24 +267,24 @@ export default function Home() {
   // --- PREMIUM AUTHENTICATION OVERLAY ---
   if (isAuthenticated === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4 text-slate-100 overflow-hidden relative">
-        {/* Animated background highlights */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative">
+        {/* Animated background highlights in dark mode */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/5 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
 
-        <Card className="w-full max-w-md border-slate-800 bg-slate-900/70 backdrop-blur-2xl text-slate-100 shadow-2xl relative overflow-hidden rounded-2xl">
+        <Card className="w-full max-w-md border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-2xl">
           {/* Glowing top line */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
           
           <CardHeader className="text-center pb-4 pt-8">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10 relative group">
-              <Fingerprint className="h-10 w-10 text-indigo-400 group-hover:scale-110 transition-transform animate-pulse" />
+              <Fingerprint className="h-10 w-10 text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform animate-pulse" />
               <Sparkles className="h-4 w-4 text-pink-400 absolute top-0 right-0 animate-bounce" />
             </div>
-            <CardTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-200 via-purple-200 to-white bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-slate-900 dark:from-indigo-200 dark:via-purple-200 dark:to-white bg-clip-text text-transparent">
               {showRegister ? t('register_title') : t('login_title')}
             </CardTitle>
-            <CardDescription className="text-slate-400 mt-2 text-sm px-4">
+            <CardDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm px-4">
               {showRegister ? t('register_subtitle') : t('login_subtitle')}
             </CardDescription>
           </CardHeader>
@@ -293,7 +293,7 @@ export default function Home() {
             {showRegister ? (
               <form onSubmit={handlePasskeyRegister} className="space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="regUsername" className="text-xs font-semibold text-indigo-300 uppercase tracking-wider">
+                  <label htmlFor="regUsername" className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">
                     {t('register_username_label')}
                   </label>
                   <div className="relative">
@@ -305,15 +305,15 @@ export default function Home() {
                       onChange={(e) => setRegUsername(e.target.value)}
                       required
                       disabled={authLoading}
-                      className="bg-slate-800/60 border-slate-700 pl-10 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg placeholder-slate-500"
+                      className="bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 pl-10 text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg placeholder-slate-400 dark:placeholder-slate-500"
                       placeholder={t('setup_username_placeholder')}
                     />
                   </div>
                 </div>
 
                 {authError && (
-                  <div className="text-sm bg-rose-950/40 border border-rose-800/40 text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
-                    <ShieldAlert className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+                  <div className="text-sm bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
+                    <ShieldAlert className="h-5 w-5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                     <p>{authError}</p>
                   </div>
                 )}
@@ -344,7 +344,7 @@ export default function Home() {
                       setShowRegister(false);
                       setAuthError(null);
                     }}
-                    className="w-full text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 text-sm"
+                    className="w-full text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-sm"
                     disabled={authLoading}
                   >
                     {t('auth_login_btn')}
@@ -373,15 +373,15 @@ export default function Home() {
                   </Button>
 
                   {authError && (
-                    <div className="text-sm bg-rose-950/40 border border-rose-800/40 text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
-                      <ShieldAlert className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+                    <div className="text-sm bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
+                      <ShieldAlert className="h-5 w-5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                       <p>{authError}</p>
                     </div>
                   )}
 
                   <div className="relative my-4 flex items-center justify-center">
-                    <span className="absolute inset-x-0 h-px bg-slate-800" />
-                    <span className="relative bg-slate-900 px-3 text-xs text-slate-500 uppercase tracking-widest">{t('auth_or')}</span>
+                    <span className="absolute inset-x-0 h-px bg-slate-200 dark:bg-slate-800" />
+                    <span className="relative bg-white dark:bg-slate-900 px-3 text-xs text-slate-500 uppercase tracking-widest">{t('auth_or')}</span>
                   </div>
 
                   <Button 
@@ -390,7 +390,7 @@ export default function Home() {
                       setAuthError(null);
                     }}
                     variant="outline"
-                    className="w-full border-slate-700 bg-slate-800/20 hover:bg-slate-800 text-slate-300 hover:text-white py-6 rounded-lg font-medium"
+                    className="w-full border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white py-6 rounded-lg font-medium"
                     disabled={authLoading}
                   >
                     {t('auth_register_btn')}
@@ -404,10 +404,9 @@ export default function Home() {
     );
   }
 
-  // --- REGULAR DASHBOARD PAGE ---
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-4">
+    <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="max-w-4xl mx-auto p-4 w-full flex-grow">
         <header className="flex justify-between items-center py-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">Kaino</h1>
@@ -467,6 +466,9 @@ export default function Home() {
           </Card>
         </div>
       </div>
+      <footer className="w-full py-6 text-center text-xs text-muted-foreground border-t border-border/40 bg-slate-900/10 backdrop-blur-md mt-auto">
+        <p>Kaino v0.03</p>
+      </footer>
     </div>
   );
 }

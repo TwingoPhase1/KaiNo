@@ -1,0 +1,17 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Cutout mask to make the checkmark transparent -->
+    <mask id="bagMask">
+      <!-- White is visible -->
+      <rect x="0" y="0" width="192" height="192" fill="#ffffff" />
+      <!-- Black is cut out (creates transparency in the final shape) -->
+      <path d="M80 110 L92 122 L116 94" stroke="#000000" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </mask>
+  </defs>
+
+  <!-- Shopping Bag Handle -->
+  <path d="M76 68 C76 44, 116 44, 116 68" stroke="#000000" stroke-width="8" stroke-linecap="round" fill="none" />
+
+  <!-- Shopping Bag Body with checkmark cutout mask -->
+  <path d="M64 68 H128 C133 68, 137 72, 136 77 L132 144 C131 151, 125 156, 118 156 H74 C67 156, 61 151, 60 144 L56 77 C55 72, 59 68, 64 68 Z" fill="#000000" mask="url(#bagMask)" />
+</svg>

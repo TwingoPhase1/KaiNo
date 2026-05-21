@@ -4,8 +4,8 @@
   "description": "Application de gestion de courses ultra-minimaliste et collaborative",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0b0f19",
+  "theme_color": "#4f46e5",
   "orientation": "portrait",
   "icons": [
     {
@@ -19,6 +19,12 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-monochrome.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "monochrome"
     }
   ]
 }

@@ -26,6 +26,15 @@ export const initElectric = async () => {
       const conn = await ElectricDatabase.init('kaino.db');
       const electric = await electrify(conn, schema, config);
       
+      // Establish active shape subscriptions to synchronise postgresql data with local SQLite DB
+      if (electric.db) {
+        console.log("Establishing shape subscriptions for Electric SQL tables...");
+        electric.db.lists.sync().catch((err: any) => console.error("Sync lists failed:", err));
+        electric.db.list_items.sync().catch((err: any) => console.error("Sync list_items failed:", err));
+        electric.db.article_references.sync().catch((err: any) => console.error("Sync article_references failed:", err));
+        electric.db.admin_users.sync().catch((err: any) => console.error("Sync admin_users failed:", err));
+      }
+      
       electricInstance = electric;
       return electric;
     } catch (error) {
