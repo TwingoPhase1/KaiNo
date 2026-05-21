@@ -7,7 +7,7 @@ import { SyncIndicator } from '@/components/sync-indicator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ShoppingBag, Settings, Fingerprint, Loader2, LogOut, Key, User, ShieldAlert, Sparkles } from 'lucide-react';
+import { ShoppingBag, Settings, Fingerprint, Loader2, LogOut, Key, User, ShieldAlert, Sparkles, Download, Share, X } from 'lucide-react';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { useTranslation } from '@/lib/i18n';
 
@@ -30,6 +30,12 @@ export default function Home() {
   const [showRegister, setShowRegister] = useState(false);
   const [regUsername, setRegUsername] = useState('');
   const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
+
+  // PWA states
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   /**
    * Reactive polling: Load lists periodically to catch sync updates.
@@ -123,6 +129,110 @@ export default function Home() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  // 4. PWA Installation Event Listener and Development PNG Icon Generation Hook
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // A. Platform and Standalone Detection
+    const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsIOS(ios);
+
+    const dismissed = localStorage.getItem('kaino-pwa-dismissed') === '1';
+    if (!isStandalone && !dismissed) {
+      if (ios) {
+        setShowInstallBanner(true);
+      }
+    }
+
+    // B. Capture BeforeInstallPrompt for Android/Chrome/Samsung
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      if (!isStandalone && !dismissed) {
+        setShowInstallBanner(true);
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // C. SVG-to-PNG Auto-conversion in Development mode
+    if (process.env.NODE_ENV === 'development') {
+      const key = 'kaino-icons-converted-v2';
+      if (!localStorage.getItem(key)) {
+        const convertIcons = async () => {
+          try {
+            const convertSvgToPng = (svgUrl: string, size: number, filename: string) => {
+              return new Promise<void>((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = svgUrl;
+                img.onload = async () => {
+                  try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                      reject(new Error('No canvas context'));
+                      return;
+                    }
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    
+                    const res = await fetch('/api/dev/save-png', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ filename, data: dataUrl })
+                    });
+                    if (res.ok) {
+                      resolve();
+                    } else {
+                      reject(new Error(`Failed to save ${filename}`));
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                };
+                img.onerror = () => reject(new Error(`Failed to load ${svgUrl}`));
+              });
+            };
+
+            await convertSvgToPng('/icon-192.svg', 192, 'icon-192.png');
+            await convertSvgToPng('/icon-512.svg', 512, 'icon-512.png');
+            localStorage.setItem(key, 'true');
+            console.log('🎉 [PWA Dev Tool] PNG Icons successfully generated and saved to /public');
+          } catch (err) {
+            console.error('❌ [PWA Dev Tool] Failed to auto-generate PNG icons:', err);
+          }
+        };
+        convertIcons();
+      }
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (isIOS) {
+      setShowIOSInstructions(true);
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`PWA install outcome: ${outcome}`);
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+    }
+  };
+
+  const handleDismissPWA = () => {
+    localStorage.setItem('kaino-pwa-dismissed', '1');
+    setShowInstallBanner(false);
+  };
 
   // Passkey assertion/login trigger
   const handlePasskeyLogin = async (isAuto = false) => {
@@ -429,6 +539,37 @@ export default function Home() {
         </header>
 
         <div className="space-y-6 mt-8">
+          {showInstallBanner && (
+            <Card className="relative overflow-hidden border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 backdrop-blur-md shadow-xl shadow-indigo-500/5 animate-in slide-in-from-top-4 duration-300">
+              {/* Glowing decorative blur orb */}
+              <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none" />
+              <button 
+                onClick={handleDismissPWA}
+                className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-800/25 hover:bg-slate-800/50 text-slate-400 hover:text-slate-200 transition-colors z-10"
+                title="Ignorer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-indigo-500/20 rounded-2xl border border-indigo-500/30 text-indigo-400 shrink-0 shadow-lg shadow-indigo-500/10">
+                    <Download className="h-6 w-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-100 text-base">{t('pwa_install_title')}</h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed">{t('pwa_install_desc')}</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleInstallPWA}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all rounded-xl px-5 py-2 w-full sm:w-auto shrink-0 self-end sm:self-center"
+                >
+                  {t('pwa_install_btn')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -467,8 +608,47 @@ export default function Home() {
         </div>
       </div>
       <footer className="w-full py-6 text-center text-xs text-muted-foreground border-t border-border/40 bg-slate-900/10 backdrop-blur-md mt-auto">
-        <p>Kaino v0.03</p>
+        <p>Kaino v0.04</p>
       </footer>
+
+      {/* iOS Safari manual installation guidance drawer/overlay */}
+      {showIOSInstructions && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900/90 border border-slate-800/80 backdrop-blur-xl max-w-md w-full rounded-2xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowIOSInstructions(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800/35 hover:bg-slate-800/60 text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/5">
+                <Share className="h-8 w-8 animate-bounce" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-100">{t('pwa_ios_title')}</h3>
+              <p className="text-sm text-slate-400 mt-2 px-2 leading-relaxed">
+                {t('pwa_ios_desc')}
+              </p>
+            </div>
+            <div className="mt-6 bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 space-y-4">
+              <div className="flex items-start gap-3.5 text-xs text-slate-300 font-medium">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30 shrink-0">1</span>
+                <span className="pt-0.5">{"Appuyez sur le bouton "}<strong className="text-indigo-400 font-semibold">Partager</strong>{" dans Safari (l\u2019ic\u00f4ne de fl\u00e8che sortant d\u2019un carr\u00e9)."}</span>
+              </div>
+              <div className="flex items-start gap-3.5 text-xs text-slate-300 font-medium">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30 shrink-0">2</span>
+                <span className="pt-0.5">{"Faites d\u00e9filer vers le bas et s\u00e9lectionnez "}<strong className="text-indigo-400 font-semibold">{"Sur l\u2019\u00e9cran d\u2019accueil"}</strong>{"."}                </span>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setShowIOSInstructions(false)}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 font-semibold mt-6 py-2.5 rounded-xl transition-all"
+            >
+              Fermer
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

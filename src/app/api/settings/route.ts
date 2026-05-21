@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getDefaultLanguage, setDefaultLanguage } from '@/lib/settings-db';
 import { getWebAuthnConfig } from '@/lib/get-webauthn-config';
+import { isSystemAdmin } from '@/lib/auth-check';
 
 const SUPPORTED_LANGUAGES = ['fr', 'en', 'es', 'de', 'it'];
 
@@ -37,10 +38,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized: Admin session required' }, { status: 401 });
     }
 
+    let decoded: any;
     try {
-      jwt.verify(tokenCookie.value, jwtSecret);
+      decoded = jwt.verify(tokenCookie.value, jwtSecret);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+    }
+
+    // Validate System Admin privilege
+    const isAdmin = await isSystemAdmin(decoded.id);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     // 2. Parse request body

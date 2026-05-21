@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { db, User, ShoppingList, Article } from '@/lib/db';
+import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { BarChart3, Users, ShoppingBag, Package, ArrowLeft, Loader2, Globe, Search } from 'lucide-react';
+import { BarChart3, Users, ShoppingBag, Package, ArrowLeft, Loader2, Globe, Search, ShieldAlert } from 'lucide-react';
 import { useTranslation, SUPPORTED_LANGUAGES, LANGUAGE_NAMES, SupportedLanguage } from '@/lib/i18n';
 
 /**
  * AdminDashboard - Premium dashboard for database administration and server settings
- * Fully reorganized into high-performance glassmorphic tabs with dynamic client-side filtering search bar.
+ * Fully secured via JWT session and real-time direct PostgreSQL queries.
  */
 export default function AdminDashboard() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   // Dynamic Translations
   const { t, loadingTranslations } = useTranslation();
 
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [stats, setStats] = useState({
     users: 0,
     lists: 0,
@@ -26,9 +27,9 @@ export default function AdminDashboard() {
     articles: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [articlesList, setArticlesList] = useState<Article[]>([]);
-  const [usersList, setUsersList] = useState<User[]>([]);
-  const [shoppingLists, setShoppingLists] = useState<(ShoppingList & { totalItems?: number, completedItems?: number })[]>([]);
+  const [articlesList, setArticlesList] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [shoppingLists, setShoppingLists] = useState<any[]>([]);
   
   // Tabbed view and Search filtering states
   const [activeTab, setActiveTab] = useState<'users' | 'lists' | 'articles' | 'settings'>('users');
@@ -39,35 +40,25 @@ export default function AdminDashboard() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => {
-    loadStats();
-    loadServerSettings();
-  }, []);
-
-  // Load data dynamically when tab changes
-  useEffect(() => {
-    if (activeTab === 'articles') loadArticles();
-    if (activeTab === 'users') loadUsers();
-    if (activeTab === 'lists') loadLists();
-    setSearchQuery('');
-  }, [activeTab]);
-
-  const loadStats = async () => {
+  // Load all central PostgreSQL admin metrics and items
+  const loadDashboardData = async () => {
+    setLoading(true);
     try {
-      const [userCount, listCount, itemCount, articleCount] = await Promise.all([
-        db.users.count(),
-        db.shoppingLists.count(),
-        db.listItems.count(),
-        db.articles.count(),
-      ]);
-      setStats({
-        users: userCount,
-        lists: listCount,
-        items: itemCount,
-        articles: articleCount,
-      });
+      const resp = await fetch('/api/admin/data');
+      if (resp.ok) {
+        const data = await resp.json();
+        setStats(data.stats || { users: 0, lists: 0, items: 0, articles: 0 });
+        setUsersList(data.users || []);
+        setShoppingLists(data.shoppingLists || []);
+        setArticlesList(data.articles || []);
+        setIsAuthorized(true);
+      } else if (resp.status === 401 || resp.status === 403) {
+        setIsAuthorized(false);
+      } else {
+        console.error('Failed to load admin dashboard data from server:', resp.statusText);
+      }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -86,6 +77,20 @@ export default function AdminDashboard() {
       console.error('Error fetching server settings:', error);
     }
   };
+
+  useEffect(() => {
+    loadDashboardData();
+    loadServerSettings();
+  }, []);
+
+  // Reload data periodically or when switching tabs
+  useEffect(() => {
+    if (isAuthorized) {
+      loadDashboardData();
+    }
+    setSearchQuery('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const saveServerSettings = async () => {
     setSavingSettings(true);
@@ -116,45 +121,6 @@ export default function AdminDashboard() {
       });
     } finally {
       setSavingSettings(false);
-    }
-  };
-
-  const loadArticles = async () => {
-    try {
-      const allArticles = await db.articles.toArray();
-      setArticlesList(allArticles.sort((a, b) => (b.frequency || 0) - (a.frequency || 0)));
-    } catch (error) {
-      console.error('Error loading articles:', error);
-    }
-  };
-
-  const loadUsers = async () => {
-    try {
-      const allUsers = await db.users.toArray();
-      setUsersList(allUsers);
-    } catch (error) {
-      console.error('Error loading users:', error);
-    }
-  };
-
-  const loadLists = async () => {
-    try {
-      const allLists = await db.shoppingLists.toArray();
-      const allItems = await db.listItems.toArray();
-      
-      const listsWithStats = allLists.map(list => {
-        const listItems = allItems.filter(i => i.listId === list.id);
-        const completed = listItems.filter(i => i.completed).length;
-        return {
-          ...list,
-          totalItems: listItems.length,
-          completedItems: completed
-        };
-      });
-      
-      setShoppingLists(listsWithStats);
-    } catch (error) {
-      console.error('Error loading lists:', error);
     }
   };
 
@@ -191,9 +157,15 @@ export default function AdminDashboard() {
   const deleteArticle = async (id: string) => {
     if (confirm(t('admin_confirm_delete_article'))) {
       try {
-        await db.articles.delete(id);
-        loadArticles();
-        loadStats();
+        const resp = await fetch(`/api/admin/data?type=article&id=${id}`, {
+          method: 'DELETE',
+        });
+        if (resp.ok) {
+          loadDashboardData();
+        } else {
+          const data = await resp.json();
+          alert(data.error || "Error deleting article");
+        }
       } catch (error) {
         console.error('Error deleting article:', error);
       }
@@ -203,9 +175,15 @@ export default function AdminDashboard() {
   const deleteUser = async (id: string) => {
     if (confirm(t('admin_confirm_delete_user'))) {
       try {
-        await db.users.delete(id);
-        loadUsers();
-        loadStats();
+        const resp = await fetch(`/api/admin/data?type=user&id=${id}`, {
+          method: 'DELETE',
+        });
+        if (resp.ok) {
+          loadDashboardData();
+        } else {
+          const data = await resp.json();
+          alert(data.error || "Error deleting user");
+        }
       } catch (error) {
         console.error('Error deleting user:', error);
       }
@@ -215,14 +193,15 @@ export default function AdminDashboard() {
   const deleteList = async (id: string) => {
     if (confirm(t('admin_confirm_delete_list'))) {
       try {
-        const allItems = await db.listItems.toArray();
-        const items = allItems.filter((item) => item.listId === id);
-        for (const item of items) {
-          if (item.id) await db.listItems.delete(item.id);
+        const resp = await fetch(`/api/admin/data?type=list&id=${id}`, {
+          method: 'DELETE',
+        });
+        if (resp.ok) {
+          loadDashboardData();
+        } else {
+          const data = await resp.json();
+          alert(data.error || "Error deleting list");
         }
-        await db.shoppingLists.delete(id);
-        loadLists();
-        loadStats();
       } catch (error) {
         console.error('Error deleting list:', error);
       }
@@ -231,27 +210,65 @@ export default function AdminDashboard() {
 
   // Real-time client-side search filtering logic
   const filteredUsers = usersList.filter(user => 
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.id || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredLists = shoppingLists.filter(list => 
-    list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (list.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (list.shareId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (list.createdBy || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredArticles = articlesList.filter(article => 
-    article.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (article.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loadingTranslations) {
+  if (loadingTranslations || loading && isAuthorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-indigo-500 dark:text-indigo-400" />
           <div className="text-muted-foreground font-medium animate-pulse">{t('initialization')}</div>
         </div>
+      </div>
+    );
+  }
+
+  // --- PREMIUM ACCESS DENIED SCREEN (GLASSMORPHIC ONE UI STYLE) ---
+  if (isAuthorized === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative animate-in fade-in duration-300">
+        {/* Decorative ambient animations */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
+
+        <Card className="w-full max-w-md border-rose-200 dark:border-rose-950/40 bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-2xl">
+          {/* Top warning stripe */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-rose-500 via-pink-600 to-rose-400" />
+          
+          <CardHeader className="text-center pb-4 pt-8">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-500/5 relative group">
+              <ShieldAlert className="h-10 w-10 text-rose-500 dark:text-rose-400 group-hover:scale-110 transition-transform animate-pulse" />
+            </div>
+            <CardTitle className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-rose-600 to-rose-400 dark:from-rose-400 dark:to-rose-200 bg-clip-text text-transparent">
+              {t('admin_denied_title')}
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 mt-3 text-sm px-4 leading-relaxed font-medium">
+              {t('admin_denied_desc')}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="px-6 pb-8 pt-4">
+            <Button 
+              onClick={() => router.push('/')}
+              className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white shadow-lg transition-all py-6 font-semibold rounded-xl flex items-center justify-center gap-2 border border-slate-700/50"
+            >
+              <ArrowLeft className="h-5 w-5 animate-pulse" />
+              <span>{t('admin_denied_btn')}</span>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
