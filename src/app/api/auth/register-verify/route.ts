@@ -5,12 +5,13 @@ import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { query } from '@/lib/server-db';
-import { createCredential } from '@/lib/auth-db';
+import { createCredential, ensureAuthTables } from '@/lib/auth-db';
 import { getWebAuthnConfig } from '@/lib/get-webauthn-config';
 
 export async function POST(request: Request) {
   try {
     const { rpId, origin, jwtSecret } = await getWebAuthnConfig();
+    await ensureAuthTables();
     let body: any;
     
     try {

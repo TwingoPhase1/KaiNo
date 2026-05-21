@@ -6,10 +6,12 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { getWebAuthnConfig } from '@/lib/get-webauthn-config';
+import { ensureAuthTables } from '@/lib/auth-db';
 
 export async function GET(request: Request) {
   try {
     const { rpId, rpName, jwtSecret } = await getWebAuthnConfig();
+    await ensureAuthTables();
 
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username') || 'Admin';
