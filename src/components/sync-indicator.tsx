@@ -36,7 +36,7 @@ export function SyncIndicator({ compact = false, peopleCount = 1 }: SyncIndicato
     return (
       <div 
         className="flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 backdrop-blur-md shadow-sm text-slate-200 cursor-default select-none animate-in fade-in zoom-in-95 duration-200"
-        title={isOnline ? `Synchronisé - ${peopleCount} personne${peopleCount > 1 ? 's' : ''} sur cette liste` : `Hors-ligne - ${peopleCount} personne${peopleCount > 1 ? 's' : ''} sur cette liste`}
+        title={isOnline ? t('sync_title_compact_online').replace('{count}', String(peopleCount)) : t('sync_title_compact_offline').replace('{count}', String(peopleCount))}
       >
         <span className="relative flex h-2 w-2 shrink-0">
           {isOnline ? (
@@ -59,7 +59,7 @@ export function SyncIndicator({ compact = false, peopleCount = 1 }: SyncIndicato
   return (
     <div 
       className="flex items-center gap-2.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-800/40 border border-slate-700/40 backdrop-blur-md shadow-sm text-slate-200 cursor-default select-none animate-in fade-in zoom-in-95 duration-200" 
-      title={isOnline ? 'Synchronisé avec le serveur' : 'Hors-ligne - Synchronisation en attente'}
+      title={isOnline ? t('sync_title_online') : t('sync_title_offline')}
     >
       <span className="relative flex h-2 w-2 shrink-0">
         {isOnline ? (

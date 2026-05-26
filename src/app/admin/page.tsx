@@ -150,7 +150,7 @@ export default function AdminDashboard() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert("Error exporting data");
+      alert(t('error_export_data'));
     }
   };
 
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
           loadDashboardData();
         } else {
           const data = await resp.json();
-          alert(data.error || "Error deleting article");
+          alert(data.error || t('error_delete_article'));
         }
       } catch (error) {
         console.error('Error deleting article:', error);
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
           loadDashboardData();
         } else {
           const data = await resp.json();
-          alert(data.error || "Error deleting user");
+          alert(data.error || t('error_delete_user'));
         }
       } catch (error) {
         console.error('Error deleting user:', error);
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
           loadDashboardData();
         } else {
           const data = await resp.json();
-          alert(data.error || "Error deleting list");
+          alert(data.error || t('error_delete_list'));
         }
       } catch (error) {
         console.error('Error deleting list:', error);

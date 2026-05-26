@@ -100,29 +100,48 @@ function prepareDoc(tableName: string, item: any, isNew: boolean = false) {
   const prepared: any = {};
   
   if (tableName === 'articles') {
-    prepared.id = doc.id;
-    prepared.article_name = doc.name;
-    prepared.last_price = doc.lastPrice !== undefined ? doc.lastPrice : null;
-    prepared.suggested_category = doc.category !== undefined ? doc.category : null;
-    prepared.updated_at = doc.lastSeen || doc.createdAt || new Date();
+    if ('id' in doc) prepared.id = doc.id;
+    if ('name' in doc) prepared.article_name = doc.name;
+    if ('lastPrice' in doc) prepared.last_price = doc.lastPrice !== undefined ? doc.lastPrice : null;
+    else if (isNew) prepared.last_price = null;
+    if ('category' in doc) prepared.suggested_category = doc.category !== undefined ? doc.category : null;
+    else if (isNew) prepared.suggested_category = null;
+    
+    if ('lastSeen' in doc || 'createdAt' in doc) {
+      prepared.updated_at = doc.lastSeen || doc.createdAt || new Date();
+    } else if (isNew) {
+      prepared.updated_at = new Date();
+    }
   } else if (tableName === 'users') {
-    prepared.id = doc.id;
-    prepared.username = doc.username;
-    prepared.password_hash = doc.passwordHash || '';
-    prepared.created_at = doc.createdAt || new Date();
+    if ('id' in doc) prepared.id = doc.id;
+    if ('username' in doc) prepared.username = doc.username;
+    if ('passwordHash' in doc) prepared.password_hash = doc.passwordHash !== undefined ? doc.passwordHash : '';
+    else if (isNew) prepared.password_hash = '';
+    if ('createdAt' in doc) prepared.created_at = doc.createdAt || new Date();
+    else if (isNew) prepared.created_at = new Date();
   } else if (tableName === 'shopping_lists') {
-    prepared.id = doc.id;
-    prepared.name = doc.name;
-    prepared.created_at = doc.createdAt || new Date();
+    if ('id' in doc) prepared.id = doc.id;
+    if ('name' in doc) prepared.name = doc.name;
+    if ('createdAt' in doc) prepared.created_at = doc.createdAt || new Date();
+    else if (isNew) prepared.created_at = new Date();
   } else if (tableName === 'list_items') {
-    prepared.id = doc.id;
-    prepared.list_id = doc.listId;
-    prepared.name = doc.name;
-    prepared.quantity = doc.quantity !== undefined ? String(doc.quantity) : null;
-    prepared.price = doc.price !== undefined ? doc.price : null;
-    prepared.assigned_to = doc.assignedTo !== undefined ? doc.assignedTo : null;
-    prepared.is_checked = doc.completed !== undefined ? doc.completed : false;
-    prepared.updated_at = doc.completedAt || doc.createdAt || new Date();
+    if ('id' in doc) prepared.id = doc.id;
+    if ('listId' in doc) prepared.list_id = doc.listId;
+    if ('name' in doc) prepared.name = doc.name;
+    if ('quantity' in doc) prepared.quantity = (doc.quantity !== undefined && doc.quantity !== null) ? String(doc.quantity) : null;
+    else if (isNew) prepared.quantity = null;
+    if ('price' in doc) prepared.price = doc.price !== undefined ? doc.price : null;
+    else if (isNew) prepared.price = null;
+    if ('assignedTo' in doc) prepared.assigned_to = doc.assignedTo !== undefined ? doc.assignedTo : null;
+    else if (isNew) prepared.assigned_to = null;
+    if ('completed' in doc) prepared.is_checked = doc.completed !== undefined ? doc.completed : false;
+    else if (isNew) prepared.is_checked = false;
+    
+    if ('completedAt' in doc || 'createdAt' in doc) {
+      prepared.updated_at = doc.completedAt || doc.createdAt || new Date();
+    } else if (isNew) {
+      prepared.updated_at = new Date();
+    }
   } else {
     return doc;
   }

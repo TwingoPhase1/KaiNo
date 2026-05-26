@@ -6,13 +6,13 @@ import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Plus, Check, Trash2, User, Loader2, Sparkles, QrCode, Link as LinkIcon, Pencil, X, Settings, Fingerprint, ShieldAlert, Key } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Trash2, User, Loader2, Sparkles, QrCode, Link as LinkIcon, Pencil, X, Settings, Fingerprint, ShieldAlert, Key, ShoppingBag } from 'lucide-react';
 import { parseShoppingItem, ParsedItem } from '@/lib/parser';
 import { useSuggestions } from '@/hooks/useSuggestions';
 import { AnimatedListItem, AnimatedContainer } from '@/components/animated-list-item';
 import { SwipeableItem } from '@/components/swipeable-item';
 import { SyncIndicator } from '@/components/sync-indicator';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, placeholders } from '@/lib/i18n';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import { useTheme } from '@/lib/useTheme';
 
@@ -74,7 +74,7 @@ export default function ListDetail() {
   const theme = useTheme();
   
   // Dynamic translations
-  const { t, loadingTranslations } = useTranslation();
+  const { t, loadingTranslations, lang } = useTranslation();
 
   const [newItem, setNewItem] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -107,6 +107,21 @@ export default function ListDetail() {
   const [editQty, setEditQty] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editCategory, setEditCategory] = useState('');
+
+  // Dynamic random placeholder state
+  const [smartPlaceholder, setSmartPlaceholder] = useState('');
+  const rotatePlaceholder = () => {
+    const list = placeholders[lang] || placeholders['fr'];
+    if (list && list.length > 0) {
+      const randomIdx = Math.floor(Math.random() * list.length);
+      setSmartPlaceholder(list[randomIdx]);
+    }
+  };
+
+  useEffect(() => {
+    rotatePlaceholder();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
   
   // iOS Dynamic Title shrink on scroll
   const [scrolled, setScrolled] = useState(false);
@@ -580,7 +595,7 @@ export default function ListDetail() {
       router.push('/');
     } catch (error) {
       console.error('Error deleting list:', error);
-      alert('Erreur lors de la suppression de la liste');
+      alert(t('error_delete_list'));
     } finally {
       setIsDeleting(false);
     }
@@ -842,6 +857,7 @@ export default function ListDetail() {
 
   const addItem = async (input: string) => {
     setNewItem('');
+    rotatePlaceholder();
     setShowSuggestions(false);
     setParsedItem(null);
 
@@ -1175,7 +1191,7 @@ export default function ListDetail() {
 
   return (
     <AnimatedContainer>
-      <div className={`min-h-screen bg-background pb-32 ${theme}`}>
+      <div className={`min-h-screen bg-background ${isSortedByRayon ? 'pb-12' : 'pb-32'} ${theme}`}>
         
         {/* ==========================================
            1. iOS STICKY APPLE-STYLE HEADER
@@ -1204,7 +1220,7 @@ export default function ListDetail() {
                     <SyncIndicator compact peopleCount={peopleCount} />
                   </div>
                   <p className="text-xs text-slate-400 font-medium mt-0.5">
-                    ID: {list.shareId} • {totalBudget > 0 ? `${totalBudget.toFixed(2)}€` : `${totalItems} items`}
+                    {totalBudget > 0 ? `${totalBudget.toFixed(2)}€ • ` : ''}{completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
                   </p>
                 </div>
               )}
@@ -1313,9 +1329,6 @@ export default function ListDetail() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 pt-1">
-                ID: {list.shareId}
-              </p>
             </div>
           </section>
         )}
@@ -1335,7 +1348,7 @@ export default function ListDetail() {
                   <SyncIndicator compact peopleCount={peopleCount} />
                 </div>
                 <p className="text-xs text-slate-400 font-medium">
-                  ID: {list.shareId} {totalBudget > 0 && `• ${totalBudget.toFixed(2)}€`}
+                  {totalBudget > 0 ? `${totalBudget.toFixed(2)}€ • ` : ''}{completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
                 </p>
               </div>
             </div>
@@ -1391,12 +1404,17 @@ export default function ListDetail() {
               </h2>
               {activeItems.length > 0 && (
                 <Button
-                  variant="ghost"
+                  variant={isSortedByRayon ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setIsSortedByRayon(!isSortedByRayon)}
-                  className="h-8 px-3 bg-slate-800/40 hover:bg-slate-800 text-indigo-300 hover:text-indigo-200 rounded-full border border-slate-700/50 text-xs font-semibold flex items-center gap-1.5 transition-all duration-200"
+                  className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all duration-300 rounded-full border ${
+                    isSortedByRayon 
+                      ? 'bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/40 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]' 
+                      : 'bg-slate-800/40 hover:bg-slate-800 text-indigo-300 hover:text-indigo-200 border-slate-700/50'
+                  }`}
                 >
-                  <span>{isSortedByRayon ? 'Vue classique' : 'Trier par rayon'}</span>
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  <span>{isSortedByRayon ? t('shopping_mode_active') : t('shopping_mode')}</span>
                 </Button>
               )}
             </div>
@@ -1431,7 +1449,7 @@ export default function ListDetail() {
               </div>
             )}
 
-            {completedItems.length > 0 && (
+            {!isSortedByRayon && completedItems.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-xs font-semibold text-indigo-300 uppercase tracking-widest pl-2 mb-3">
                   {t('list_completed_section')} ({completedItems.length})
@@ -1491,7 +1509,7 @@ export default function ListDetail() {
         {/* ==========================================
            4. ANDROID FLOATING ACTION BUTTON (FAB)
            ========================================== */}
-        {theme === 'theme-android' && newItem.trim() === '' && (
+        {theme === 'theme-android' && newItem.trim() === '' && !isSortedByRayon && (
           <Button
             onClick={focusInput}
             className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-2xl flex items-center justify-center z-50 ripple scale-in border-none"
@@ -1503,129 +1521,132 @@ export default function ListDetail() {
         {/* ==========================================
            THEMED FIXED BOTTOM INPUT INPUT AREA
            ========================================== */}
-        <div className={`fixed bottom-0 left-0 right-0 p-4 z-40 transition-all ${
-          theme === 'theme-ios' 
-            ? 'bg-slate-950/70 backdrop-blur-2xl border-t border-white/10' 
-            : theme === 'theme-samsung'
-            ? 'bg-slate-900 border-t border-slate-800'
-            : 'bg-background border-t border-slate-800'
-        }`}>
-          <div className="max-w-2xl mx-auto relative">
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                type="text"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newItem.trim()) {
-                    addItem(newItem.trim());
-                  }
-                }}
-                placeholder={t('list_input_placeholder')}
-                className={`flex-1 bg-slate-800/50 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 ${
-                  theme === 'theme-samsung' 
-                    ? 'rounded-2xl py-6 pl-4' 
-                    : theme === 'theme-android'
-                    ? 'rounded-full py-6 pl-5'
-                    : 'rounded-lg'
-                }`}
-              />
-              <Button 
-                onClick={() => newItem.trim() && addItem(newItem.trim())}
-                className={`theme-btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow font-semibold gap-1.5 ${
-                  theme === 'theme-samsung' 
-                    ? 'rounded-2xl px-6' 
-                    : theme === 'theme-android'
-                    ? 'rounded-full px-6 ripple'
-                    : 'rounded-lg'
-                }`}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Parsed item preview */}
-            {parsedItem && parsedItem.name && (
-              <div className="mt-2.5 flex gap-2 text-xs font-semibold text-indigo-300">
-                {parsedItem.quantity && (
-                  <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md">
-                    {t('qty')}: {parsedItem.quantity}
-                  </span>
-                )}
-                {parsedItem.price && (
-                  <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md">
-                    {t('price')}: {parsedItem.price.toFixed(2)}€
-                  </span>
-                )}
-                {parsedItem.assignedTo && (
-                  <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    {parsedItem.assignedTo}
-                  </span>
-                )}
+        {!isSortedByRayon && (
+          <div className={`fixed bottom-0 left-0 right-0 p-4 z-40 transition-all ${
+            theme === 'theme-ios' 
+              ? 'bg-slate-950/70 backdrop-blur-2xl border-t border-white/10' 
+              : theme === 'theme-samsung'
+              ? 'bg-slate-900 border-t border-slate-800'
+              : 'bg-background border-t border-slate-800'
+          }`}>
+            <div className="max-w-2xl mx-auto relative">
+              <div className="flex gap-2">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  onFocus={rotatePlaceholder}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newItem.trim()) {
+                      addItem(newItem.trim());
+                    }
+                  }}
+                  placeholder={smartPlaceholder}
+                  className={`flex-1 bg-slate-800/50 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 ${
+                    theme === 'theme-samsung' 
+                      ? 'rounded-2xl py-6 pl-4' 
+                      : theme === 'theme-android'
+                      ? 'rounded-full py-6 pl-5'
+                      : 'rounded-lg'
+                  }`}
+                />
+                <Button 
+                  onClick={() => newItem.trim() && addItem(newItem.trim())}
+                  className={`theme-btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow font-semibold gap-1.5 ${
+                    theme === 'theme-samsung' 
+                      ? 'rounded-2xl px-6' 
+                      : theme === 'theme-android'
+                      ? 'rounded-full px-6 ripple'
+                      : 'rounded-lg'
+                  }`}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            )}
 
-            {/* Autocomplete Suggestions */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className={`absolute bottom-full left-0 right-0 mb-3 bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden z-50 ${
-                theme === 'theme-samsung' 
-                  ? 'rounded-3xl p-2' 
-                  : theme === 'theme-android'
-                  ? 'rounded-2xl p-1.5'
-                  : 'rounded-lg'
-              }`}>
-                {/* One UI large tapable suggestions */}
-                {theme === 'theme-samsung' ? (
-                  <div className="flex flex-wrap gap-2 p-2">
-                    {suggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        onClick={() => addItem(suggestion.name)}
-                        className="bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-full px-5 py-2 text-sm font-semibold flex items-center gap-2 shadow-sm border border-slate-700/50"
-                      >
-                        <span>{suggestion.name}</span>
-                        {suggestion.frequency && suggestion.frequency > 1 && (
-                          <span className="bg-indigo-600/30 text-indigo-300 rounded-full text-[10px] px-2 py-0.5">
-                            {suggestion.frequency}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  // Traditional vertical suggestion dropdown for standard/generic
-                  <div>
-                    {suggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        className={`w-full text-left px-4 py-3 hover:bg-slate-800 flex justify-between items-center border-b border-slate-800 last:border-b-0 ${
-                          theme === 'theme-android' ? 'rounded-xl ripple' : ''
-                        }`}
-                        onClick={() => addItem(suggestion.name)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-200">{suggestion.name}</span>
+              {/* Parsed item preview */}
+              {parsedItem && parsedItem.name && (
+                <div className="mt-2.5 flex gap-2 text-xs font-semibold text-indigo-300">
+                  {parsedItem.quantity && (
+                    <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md">
+                      {t('qty')}: {parsedItem.quantity}
+                    </span>
+                  )}
+                  {parsedItem.price && (
+                    <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md">
+                      {t('price')}: {parsedItem.price.toFixed(2)}€
+                    </span>
+                  )}
+                  {parsedItem.assignedTo && (
+                    <span className="bg-indigo-600/20 border border-indigo-500/20 px-2.5 py-1 rounded-md flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      {parsedItem.assignedTo}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className={`absolute bottom-full left-0 right-0 mb-3 bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden z-50 ${
+                  theme === 'theme-samsung' 
+                    ? 'rounded-3xl p-2' 
+                    : theme === 'theme-android'
+                    ? 'rounded-2xl p-1.5'
+                    : 'rounded-lg'
+                }`}>
+                  {/* One UI large tapable suggestions */}
+                  {theme === 'theme-samsung' ? (
+                    <div className="flex flex-wrap gap-2 p-2">
+                      {suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          onClick={() => addItem(suggestion.name)}
+                          className="bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-full px-5 py-2 text-sm font-semibold flex items-center gap-2 shadow-sm border border-slate-700/50"
+                        >
+                          <span>{suggestion.name}</span>
                           {suggestion.frequency && suggestion.frequency > 1 && (
-                            <span className="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full font-bold">
-                              {suggestion.frequency}x
+                            <span className="bg-indigo-600/30 text-indigo-300 rounded-full text-[10px] px-2 py-0.5">
+                              {suggestion.frequency}
                             </span>
                           )}
-                        </div>
-                        {suggestion.lastPrice && (
-                          <span className="text-sm text-slate-400 font-medium">
-                            {suggestion.lastPrice.toFixed(2)} €
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    // Traditional vertical suggestion dropdown for standard/generic
+                    <div>
+                      {suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          className={`w-full text-left px-4 py-3 hover:bg-slate-800 flex justify-between items-center border-b border-slate-800 last:border-b-0 ${
+                            theme === 'theme-android' ? 'rounded-xl ripple' : ''
+                          }`}
+                          onClick={() => addItem(suggestion.name)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-200">{suggestion.name}</span>
+                            {suggestion.frequency && suggestion.frequency > 1 && (
+                              <span className="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full font-bold">
+                                {suggestion.frequency}x
+                              </span>
+                            )}
+                          </div>
+                          {suggestion.lastPrice && (
+                            <span className="text-sm text-slate-400 font-medium">
+                              {suggestion.lastPrice.toFixed(2)} €
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* QR Code Glassmorphic Modal */}
         {showQrModal && (
@@ -1884,7 +1905,7 @@ export default function ListDetail() {
               <div className="flex items-center gap-2 mb-4 mt-2">
                 <Pencil className="h-5 w-5 text-indigo-400" />
                 <h2 className="text-xl font-bold text-slate-100 tracking-tight">
-                  Modifier l&apos;article
+                  {t('edit_item_title')}
                 </h2>
               </div>
               
@@ -1892,14 +1913,14 @@ export default function ListDetail() {
                 {/* Product Name */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-indigo-300 uppercase tracking-wider block">
-                    Nom de l&apos;article
+                    {t('edit_item_name_label')}
                   </label>
                   <Input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     className="bg-slate-800/50 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl"
-                    placeholder="Ex: Baguette, Lait..."
+                    placeholder={t('edit_placeholder_name')}
                   />
                 </div>
 
@@ -1907,26 +1928,26 @@ export default function ListDetail() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-indigo-300 uppercase tracking-wider block">
-                      Quantité / Nombre
+                      {t('edit_item_qty_label')}
                     </label>
                     <Input
                       type="text"
                       value={editQty}
                       onChange={(e) => setEditQty(e.target.value)}
                       className="bg-slate-800/50 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl"
-                      placeholder="Ex: 3, 500g..."
+                      placeholder={t('edit_placeholder_qty')}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-indigo-300 uppercase tracking-wider block">
-                      Prix (€)
+                      {t('edit_item_price_label')}
                     </label>
                     <Input
                       type="text"
                       value={editPrice}
                       onChange={(e) => setEditPrice(e.target.value)}
                       className="bg-slate-800/50 border-slate-700 text-slate-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl"
-                      placeholder="Ex: 1.50"
+                      placeholder={t('edit_placeholder_price')}
                     />
                   </div>
                 </div>
@@ -1934,7 +1955,7 @@ export default function ListDetail() {
                 {/* Category Selector */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-indigo-300 uppercase tracking-wider block">
-                    Rayon / Catégorie
+                    {t('edit_item_category_label')}
                   </label>
                   <select
                     value={editCategory}
@@ -1957,14 +1978,14 @@ export default function ListDetail() {
                   onClick={() => setEditingItem(null)}
                   className="flex-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 rounded-xl font-semibold text-sm py-2.5"
                 >
-                  Annuler
+                  {t('cancel_btn')}
                 </Button>
                 <Button 
                   onClick={handleSaveItemEdit}
                   disabled={!editName.trim()}
                   className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm py-2.5 transition-all duration-200 disabled:opacity-50"
                 >
-                  Enregistrer
+                  {t('save_btn')}
                 </Button>
               </div>
             </div>
