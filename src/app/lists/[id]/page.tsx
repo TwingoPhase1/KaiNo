@@ -6,13 +6,14 @@ import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Plus, Check, Trash2, User, Loader2, Sparkles, QrCode, Link as LinkIcon, Pencil, X, Settings } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Trash2, User, Loader2, Sparkles, QrCode, Link as LinkIcon, Pencil, X, Settings, Fingerprint, ShieldAlert, Key } from 'lucide-react';
 import { parseShoppingItem, ParsedItem } from '@/lib/parser';
 import { useSuggestions } from '@/hooks/useSuggestions';
 import { AnimatedListItem, AnimatedContainer } from '@/components/animated-list-item';
 import { SwipeableItem } from '@/components/swipeable-item';
 import { SyncIndicator } from '@/components/sync-indicator';
 import { useTranslation } from '@/lib/i18n';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import { useTheme } from '@/lib/useTheme';
 
 const CATEGORIES = [
@@ -86,7 +87,13 @@ export default function ListDetail() {
   const [showQrModal, setShowQrModal] = useState(false);
 
   // List management states
-  const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; username: string; isAdmin?: boolean } | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); // null = loading
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [showRegister, setShowRegister] = useState(false);
+  const [regUsername, setRegUsername] = useState('');
+
   const [showManageModal, setShowManageModal] = useState(false);
   const [transferTarget, setTransferTarget] = useState('');
   const [manageSuccessMsg, setManageSuccessMsg] = useState('');
@@ -121,10 +128,16 @@ export default function ListDetail() {
           const data = await resp.json();
           if (data.authenticated) {
             setCurrentUser(data.user);
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
           }
+        } else if (isMounted) {
+          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error('Error fetching current user status:', err);
+        if (isMounted) setIsAuthenticated(false);
       }
     };
     fetchUser();
@@ -132,6 +145,116 @@ export default function ListDetail() {
       isMounted = false;
     };
   }, []);
+
+  // Passkey assertion/login trigger
+  const handlePasskeyLogin = async (isAuto = false) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const respOptions = await fetch('/api/auth/login-options');
+      if (!respOptions.ok) {
+        const data = await respOptions.json();
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_fetch_options');
+        throw new Error(errorMsg);
+      }
+      const options = await respOptions.json();
+
+      let assertionResponse;
+      try {
+        assertionResponse = await startAuthentication(options);
+      } catch (authError: any) {
+        console.warn('WebAuthn authentication cancelled or failed:', authError);
+        throw new Error(t('login_error_cancelled'));
+      }
+
+      const respVerify = await fetch('/api/auth/login-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assertionResponse),
+      });
+
+      if (!respVerify.ok) {
+        const data = await respVerify.json();
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_verify_passkey');
+        throw new Error(errorMsg);
+      }
+
+      const statusResp = await fetch('/api/auth/status');
+      if (statusResp.ok) {
+        const statusData = await statusResp.json();
+        if (statusData.authenticated) {
+          setIsAuthenticated(true);
+          setCurrentUser(statusData.user);
+          localStorage.setItem('kaino-setup-done', '1');
+        }
+      }
+    } catch (err: any) {
+      console.error('Error logging in via Passkey:', err);
+      if (!isAuto) {
+        setAuthError(err.message || t('error_login'));
+      } else {
+        setAuthError(t('passkey_required'));
+      }
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Passkey registration/creation trigger
+  const handlePasskeyRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regUsername.trim()) {
+      setAuthError(t('register_error_username_required'));
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const respOptions = await fetch(`/api/auth/register-options?username=${encodeURIComponent(regUsername.trim())}`);
+      if (!respOptions.ok) {
+        const data = await respOptions.json();
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_options');
+        throw new Error(errorMsg);
+      }
+      const options = await respOptions.json();
+
+      let registrationResponse;
+      try {
+        registrationResponse = await startRegistration(options);
+      } catch (authError: any) {
+        console.warn('WebAuthn registration cancelled or failed:', authError);
+        throw new Error(t('register_error_cancelled'));
+      }
+
+      const respVerify = await fetch('/api/auth/register-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationResponse),
+      });
+
+      if (!respVerify.ok) {
+        const data = await respVerify.json();
+        const errorMsg = data.details ? `${data.error} (${data.details})` : data.error || t('error_register_verify');
+        throw new Error(errorMsg);
+      }
+
+      const statusResp = await fetch('/api/auth/status');
+      if (statusResp.ok) {
+        const statusData = await statusResp.json();
+        if (statusData.authenticated) {
+          setIsAuthenticated(true);
+          setCurrentUser(statusData.user);
+          localStorage.setItem('kaino-setup-done', '1');
+        }
+      }
+    } catch (err: any) {
+      console.error('Error creating user via Passkey:', err);
+      setAuthError(err.message || t('error_create'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   // Live queries: automatically reload list and list items on change
   const list = useLiveQuery(() => db.shoppingLists.get(listId));
@@ -250,12 +373,20 @@ export default function ListDetail() {
                       </span>
                     )}
                   </div>
-                  {item.price && (
-                    <div className="text-xs text-slate-400 mt-1 font-medium flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-indigo-400/80" />
-                      {item.price.toFixed(2)} €
-                    </div>
-                  )}
+                  {item.price && (() => {
+                    const qty = typeof item.quantity === 'number' ? item.quantity : (parseFloat(item.quantity as string) || 1);
+                    return (
+                      <div className="text-xs text-slate-400 mt-1 font-medium flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-indigo-400/80" />
+                        <span>{item.price.toFixed(2)} € / u</span>
+                        {qty > 1 && (
+                          <span className="text-slate-500 font-normal">
+                            (Total: {((item.price || 0) * qty).toFixed(2)} €)
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 <div className="flex items-center gap-1 shrink-0">
@@ -507,6 +638,39 @@ export default function ListDetail() {
     }
   };
 
+  const handleToggleVisibility = async (makePublic: boolean) => {
+    if (!currentUser || !items) return;
+    try {
+      setManageSuccessMsg('');
+      setManageErrorMsg('');
+      
+      const metaItems = items.filter(item => item.name.startsWith('__kaino_meta:'));
+      const visibilityItem = metaItems.find(item => item.name.startsWith('__kaino_meta:visibility:'));
+      
+      const targetName = makePublic ? '__kaino_meta:visibility:public' : '__kaino_meta:visibility:private';
+      
+      if (visibilityItem) {
+        if (visibilityItem.name !== targetName) {
+          await db.listItems.update(visibilityItem.id!, {
+            name: targetName,
+          });
+        }
+      } else {
+        await db.listItems.add({
+          listId,
+          name: targetName,
+          completed: true,
+          createdAt: new Date(),
+          addedBy: 'system'
+        });
+      }
+      setManageSuccessMsg(makePublic ? 'Liste configurée comme Publique (accessible par lien).' : 'Liste configurée comme Privée (accès restreint).');
+    } catch (err: any) {
+      console.error('Error toggling list visibility:', err);
+      setManageErrorMsg('Erreur lors de la modification de la visibilité');
+    }
+  };
+
   const handleDistributeEquitably = async () => {
     if (!currentUser || !items) return;
     try {
@@ -685,6 +849,7 @@ export default function ListDetail() {
       const parsed = parseShoppingItem(input);
       const name = parsed.name || input;
       let articleId: string | undefined;
+      let defaultPrice = parsed.price;
 
       // Check article DB
       try {
@@ -695,6 +860,9 @@ export default function ListDetail() {
 
         if (existing && existing.id) {
           articleId = existing.id;
+          if (defaultPrice === undefined && existing.lastPrice !== undefined) {
+            defaultPrice = existing.lastPrice;
+          }
           await db.articles.update(existing.id, {
             frequency: (existing.frequency || 0) + 1,
             lastPrice: parsed.price || existing.lastPrice,
@@ -722,7 +890,7 @@ export default function ListDetail() {
         articleId,
         name,
         completed: false,
-        price: parsed.price,
+        price: defaultPrice,
         quantity: parsed.quantity,
         unit: parsed.unit,
         assignedTo: parsed.assignedTo,
@@ -755,13 +923,146 @@ export default function ListDetail() {
     }
   };
 
-  if (loadingTranslations) {
+  if (loadingTranslations || isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-indigo-500 dark:text-indigo-400" />
           <div className="text-muted-foreground font-medium animate-pulse">{t('initialization')}</div>
         </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated === false) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-4 overflow-hidden relative">
+        <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 blur-[120px] pointer-events-none animate-pulse duration-[10000ms]" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-purple-500/10 dark:bg-purple-500/20 blur-[120px] pointer-events-none animate-pulse duration-[8000ms]" />
+
+        <Card className="w-full max-w-md border-slate-200/50 dark:border-slate-800/40 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-3xl animate-in fade-in zoom-in-95 duration-500">
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400" />
+          
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 shadow-lg shadow-indigo-500/5 rotate-3">
+                <Fingerprint className="h-7 w-7 text-indigo-500 dark:text-indigo-400" />
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                {showRegister ? 'Rejoindre Kaino' : 'Déverrouiller Kaino'}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                {showRegister ? 'Créez un compte sécurisé sans mot de passe' : 'Accédez à vos listes collaboratives avec votre clé d&apos;accès'}
+              </p>
+            </div>
+
+            {showRegister ? (
+              <form onSubmit={handlePasskeyRegister} className="space-y-5">
+                <div className="space-y-2">
+                  <label htmlFor="reg-username" className="text-xs font-bold text-indigo-500 uppercase tracking-wider block">
+                    Nom d&apos;utilisateur
+                  </label>
+                  <Input 
+                    id="reg-username"
+                    type="text" 
+                    placeholder="Entrez votre nom"
+                    value={regUsername}
+                    onChange={(e) => setRegUsername(e.target.value)}
+                    className="py-6 rounded-lg bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
+                    required
+                    disabled={authLoading}
+                  />
+                </div>
+
+                {authError && (
+                  <div className="text-sm bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
+                    <ShieldAlert className="h-5 w-5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <p>{authError}</p>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all py-6 font-semibold rounded-lg gap-2" 
+                    disabled={authLoading}
+                  >
+                    {authLoading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Création en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="h-5 w-5" />
+                        Créer mon compte
+                      </>
+                    )}
+                  </Button>
+
+                  <Button 
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowRegister(false);
+                      setAuthError(null);
+                    }}
+                    className="w-full text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-sm"
+                    disabled={authLoading}
+                  >
+                    Se connecter
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => handlePasskeyLogin(false)}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all py-8 font-semibold rounded-xl text-base gap-3 flex flex-col justify-center items-center" 
+                    disabled={authLoading}
+                  >
+                    {authLoading ? (
+                      <>
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span>Vérification...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Fingerprint className="h-7 w-7 text-indigo-200 animate-pulse" />
+                        <span>Déverrouiller avec ma clé</span>
+                      </>
+                    )}
+                  </Button>
+
+                  {authError && (
+                    <div className="text-sm bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 p-3 rounded-lg flex items-start gap-2.5">
+                      <ShieldAlert className="h-5 w-5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
+                      <p>{authError}</p>
+                    </div>
+                  )}
+
+                  <div className="relative my-4 flex items-center justify-center">
+                    <span className="absolute inset-x-0 h-px bg-slate-200 dark:bg-slate-800" />
+                    <span className="relative bg-white dark:bg-slate-900 px-3 text-xs text-slate-500 uppercase tracking-widest">OU</span>
+                  </div>
+
+                  <Button 
+                    onClick={() => {
+                      setShowRegister(true);
+                      setAuthError(null);
+                    }}
+                    variant="outline"
+                    className="w-full border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white py-6 rounded-lg font-medium"
+                    disabled={authLoading}
+                  >
+                    Créer un compte
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -788,6 +1089,43 @@ export default function ListDetail() {
   const ownerItem = metadataItems.find(item => item.name.startsWith('__kaino_meta:owner:'));
   const ownerUsername = ownerItem ? ownerItem.name.replace('__kaino_meta:owner:', '') : null;
   const isOwner = !ownerUsername || (currentUser && ownerUsername === currentUser.username);
+
+  // Visibility and Access Check
+  const visibilityItem = metadataItems.find(item => item.name.startsWith('__kaino_meta:visibility:'));
+  const isPublic = !visibilityItem || visibilityItem.name === '__kaino_meta:visibility:public';
+
+  // --- ACCÈS REFUSÉ (LISTE PRIVÉE) ---
+  if (currentUser && !isPublic && !isOwner && !collaboratorUsernames.includes(currentUser.username)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
+
+        <Card className="w-full max-w-md border-rose-200 dark:border-rose-950/40 bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-3xl animate-in fade-in zoom-in-95 duration-500">
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-500" />
+          
+          <CardContent className="p-8 text-center flex flex-col items-center">
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-500/5">
+              <X className="h-10 w-10 text-rose-500" />
+            </div>
+            <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent mb-3">
+              Liste Privée
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
+              Vous n&apos;avez pas l&apos;autorisation d&apos;accéder à cette liste de courses collaborative. Contactez le propriétaire pour qu&apos;il vous invite.
+            </p>
+            <Button 
+              onClick={() => router.push('/')}
+              className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white shadow-lg transition-all py-6 font-semibold rounded-xl flex items-center justify-center gap-2 border border-slate-700/50"
+            >
+              <ArrowLeft className="h-5 w-5 animate-pulse" />
+              <span>Retour au Tableau de Bord</span>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Scoped collaborators lists for transfer ownership
   const collaborators = collaboratorUsernames.filter(username => currentUser && username !== currentUser.username);
@@ -1452,7 +1790,41 @@ export default function ListDetail() {
                   </Button>
                 </div>
 
-                {/* 4. Danger Zone / Delete Section */}
+                {/* 4. Visibility Section */}
+                <div className="space-y-2.5 p-4 bg-slate-800/40 border border-slate-700/30 rounded-2xl">
+                  <label className="text-xs font-bold text-indigo-300 uppercase tracking-wider block">
+                    Visibilité de la liste
+                  </label>
+                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                    {isPublic 
+                      ? 'Toute personne disposant du lien peut accéder à cette liste collaborative.' 
+                      : 'Seuls le propriétaire et les collaborateurs déjà inscrits peuvent accéder à cette liste.'}
+                  </p>
+                  <div className="flex gap-2.5 mt-2">
+                    <Button 
+                      onClick={() => handleToggleVisibility(true)}
+                      className={`flex-1 rounded-xl text-xs font-bold py-3 transition-all duration-300 border border-indigo-500/10 shadow-lg ${
+                        isPublic 
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/10' 
+                          : 'bg-slate-900 border-slate-700/50 text-slate-400 hover:bg-slate-800'
+                      }`}
+                    >
+                      Publique (Lien)
+                    </Button>
+                    <Button 
+                      onClick={() => handleToggleVisibility(false)}
+                      className={`flex-1 rounded-xl text-xs font-bold py-3 transition-all duration-300 border border-indigo-500/10 shadow-lg ${
+                        !isPublic 
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/10' 
+                          : 'bg-slate-900 border-slate-700/50 text-slate-400 hover:bg-slate-800'
+                      }`}
+                    >
+                      Privée
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 5. Danger Zone / Delete Section */}
                 <div className="space-y-2 p-4 bg-rose-950/10 border border-rose-500/20 rounded-2xl">
                   <label className="text-xs font-bold text-rose-400 uppercase tracking-wider block">
                     Zone de danger

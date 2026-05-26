@@ -29,7 +29,7 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showRegister, setShowRegister] = useState(false);
   const [regUsername, setRegUsername] = useState('');
-  const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; username: string; isAdmin?: boolean } | null>(null);
 
   // PWA states
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -529,9 +529,11 @@ export default function Home() {
                 {currentUser.username}
               </span>
             )}
-            <Button variant="ghost" size="icon" onClick={() => router.push('/admin')} title={t('administration')}>
-              <Settings className="h-5 w-5" />
-            </Button>
+            {currentUser && currentUser.isAdmin && (
+              <Button variant="ghost" size="icon" onClick={() => router.push('/admin')} title={t('administration')}>
+                <Settings className="h-5 w-5" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={handleLogout} title={t('disconnect')}>
               <LogOut className="h-5 w-5 text-rose-400" />
             </Button>
@@ -608,7 +610,7 @@ export default function Home() {
         </div>
       </div>
       <footer className="w-full py-6 text-center text-xs text-muted-foreground border-t border-border/40 bg-slate-900/10 backdrop-blur-md mt-auto">
-        <p>Kaino v0.04</p>
+        <p>Kaino v0.05</p>
       </footer>
 
       {/* iOS Safari manual installation guidance drawer/overlay */}

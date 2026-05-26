@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getWebAuthnConfig } from '@/lib/get-webauthn-config';
 
+import { isSystemAdmin } from '@/lib/auth-check';
+
 export async function GET() {
   try {
     const { jwtSecret } = await getWebAuthnConfig();
@@ -17,11 +19,13 @@ export async function GET() {
 
     try {
       const decoded = jwt.verify(tokenCookie.value, jwtSecret) as any;
+      const isAdmin = await isSystemAdmin(decoded.id);
       return NextResponse.json({
         authenticated: true,
         user: {
           id: decoded.id,
           username: decoded.username,
+          isAdmin,
         },
       });
     } catch (err) {
