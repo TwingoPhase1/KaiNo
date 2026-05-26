@@ -1083,7 +1083,18 @@ export default function ListDetail() {
     );
   }
 
-  if (!list) {
+  if (list === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors duration-300">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-indigo-500 dark:text-indigo-400" />
+          <div className="text-muted-foreground font-medium animate-pulse">{t('loading')}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (list === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-foreground font-semibold">{t('list_not_found')}</div>

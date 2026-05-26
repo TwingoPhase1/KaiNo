@@ -34,6 +34,15 @@ export const initElectric = async () => {
         electric.db.article_references.sync().catch((err: any) => console.error("Sync article_references failed:", err));
         electric.db.admin_users.sync().catch((err: any) => console.error("Sync admin_users failed:", err));
       }
+
+      // Hook the Electric notifier to dispatch a global window event for our useLiveQuery hooks
+      if (electric.notifier) {
+        electric.notifier.subscribeToDataChanges(() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('electric-sync-change'));
+          }
+        });
+      }
       
       electricInstance = electric;
       return electric;
