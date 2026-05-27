@@ -6,7 +6,7 @@ import { query } from '@/lib/server-db';
 /**
  * GET /api/dev/db-electrify
  * Force tables electrification and return exact error logs on failure.
- * Tries CALL electric.electrify('table') procedure syntax.
+ * Preserves the original CALL error if all fallbacks fail.
  */
 export async function GET() {
   const results: Record<string, { success: boolean; method: string; message: string; error?: any }> = {};
@@ -16,7 +16,7 @@ export async function GET() {
     let success = false;
     let method = 'CALL electric.electrify';
     let message = '';
-    let errorDetail: any = null;
+    let originalError: any = null;
 
     // Method A: CALL electric.electrify('table_name')
     try {
@@ -24,10 +24,11 @@ export async function GET() {
       success = true;
       message = '🔌 Table electrified successfully via CALL electric.electrify!';
     } catch (e: any) {
-      errorDetail = {
+      originalError = {
         code: e.code,
         message: e.message,
-        detail: e.detail
+        detail: e.detail,
+        hint: e.hint
       };
     }
 
@@ -38,13 +39,9 @@ export async function GET() {
         await query(`CALL electric.electrify('public.${table}');`);
         success = true;
         message = '🔌 Table electrified successfully via CALL electric.electrify(public.table)!';
-        errorDetail = null;
+        originalError = null;
       } catch (e: any) {
-        errorDetail = {
-          code: e.code,
-          message: e.message,
-          detail: e.detail
-        };
+        // Keep original error from Method A as the most descriptive
       }
     }
 
@@ -55,21 +52,17 @@ export async function GET() {
         await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
         success = true;
         message = '🔌 Table electrified successfully via ALTER TABLE ENABLE ELECTRIC!';
-        errorDetail = null;
+        originalError = null;
       } catch (e: any) {
-        errorDetail = {
-          code: e.code,
-          message: e.message,
-          detail: e.detail
-        };
+        // Keep original error from Method A as the most descriptive
       }
     }
 
     results[table] = {
       success,
-      method,
-      message: success ? message : (errorDetail?.message || 'Unknown error'),
-      error: errorDetail
+      method: success ? method : 'CALL electric.electrify',
+      message: success ? message : (originalError?.message || 'Unknown error'),
+      error: success ? null : originalError
     };
   }
 
