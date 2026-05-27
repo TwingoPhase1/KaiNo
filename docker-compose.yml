@@ -19,6 +19,9 @@ services:
       - LOGICAL_PUBLISHER_HOST=electric
       - PG_PROXY_PASSWORD=proxy_password
       - AUTH_MODE=insecure
+      - ELECTRIC_STORAGE_DIR=/app/persistent
+    volumes:
+      - electric-data:/app/persistent
     ports:
       - "5133:5133"
     depends_on:
@@ -45,6 +48,8 @@ services:
 
 volumes:
   postgres-data:
+    driver: local
+  electric-data:
     driver: local
 
 networks:
