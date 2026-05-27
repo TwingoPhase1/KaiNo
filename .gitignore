@@ -46,7 +46,8 @@ Thumbs.db
 *.db-journal
 *.db-shm
 *.db-wal
-postgres-data/
+db/postgres-data/
+db/electric-data/
 
 # IDE configurations
 .vscode/
