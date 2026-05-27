@@ -27,11 +27,16 @@ export async function ensureAuthTables() {
         id TEXT PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
         public_key TEXT NOT NULL,
-        counter BIGINT NOT NULL DEFAULT 0,
+        counter BIGINT NOT NULL,
         transports TEXT,
         created_at TIMESTAMPTZ NOT NULL
       );
     `);
+
+    // Dynamically drop DEFAULT constraint on counter if it exists (Electric SQL constraint)
+    try {
+      await query(`ALTER TABLE admin_credentials ALTER COLUMN counter DROP DEFAULT;`);
+    } catch (e) {}
 
     // 3. Create lists table if it doesn't exist
     await query(`

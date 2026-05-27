@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS admin_credentials (
     id TEXT PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
     public_key TEXT NOT NULL,
-    counter BIGINT NOT NULL DEFAULT 0,
+    counter BIGINT NOT NULL,
     transports TEXT,
     created_at TIMESTAMPTZ NOT NULL
 );
