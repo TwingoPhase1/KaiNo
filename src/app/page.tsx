@@ -758,12 +758,12 @@ export default function Home() {
       </div>
 
       {/* DISCREET BOTTOM-RIGHT FOOTER */}
-      <div className="fixed bottom-3 right-4 text-[10px] text-slate-400 dark:text-slate-500/70 font-sans tracking-tight pointer-events-none select-none z-50 hover:opacity-100 transition-opacity">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] right-4 text-[10px] text-slate-400 dark:text-slate-500/70 font-sans tracking-tight pointer-events-none select-none z-50 hover:opacity-100 transition-opacity">
         Kaino v0.07 • {themeLabel}
       </div>
 
       {/* DEVELOPMENT DEV TOOLS - TEMPORARY THEME SELECTOR */}
-      <div className="fixed bottom-3 left-4 z-50 flex items-center gap-2 bg-slate-900/90 border border-slate-700/60 rounded-full px-3 py-1.5 shadow-xl text-xs backdrop-blur-md text-slate-100 font-sans select-none">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] left-4 z-50 flex items-center gap-2 bg-slate-900/90 border border-slate-700/60 rounded-full px-3 py-1.5 shadow-xl text-xs backdrop-blur-md text-slate-100 font-sans select-none">
         <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider">Dev:</span>
         <select
           value={theme}

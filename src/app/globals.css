@@ -445,6 +445,7 @@ html:not(.dark) .ios-text-btn { color: #007aff; }
   position: sticky;
   top: 0;
   z-index: 50;
+  padding-top: env(safe-area-inset-top, 0px);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
@@ -608,8 +609,11 @@ html:not(.dark) .m3-fab {
 .m3-top-bar {
   display: flex;
   align-items: center;
-  padding: 8px 4px;
-  min-height: 64px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+  padding-bottom: 8px;
+  padding-left: 4px;
+  padding-right: 4px;
+  min-height: calc(env(safe-area-inset-top, 0px) + 64px);
 }
 
 /* Android Ripple Click Effect */
@@ -651,7 +655,7 @@ html:not(.dark) .m3-fab {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0 20px 24px;
+  padding: env(safe-area-inset-top, 0px) 20px 24px;
 }
 
 /* One UI Large Title */
@@ -847,6 +851,7 @@ html:not(.dark) {
     background-color: var(--input-light-bg, #ebedf0) !important;
     color: var(--foreground-light, #1a1d21) !important;
     border-color: var(--card-border) !important;
+    font-size: 16px !important; /* Prevents auto-zoom on mobile iOS browsers */
   }
   
   input::placeholder {

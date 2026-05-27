@@ -82,27 +82,40 @@ export function PlatformHeader({
           </div>
         </header>
 
-        {/* Large Title area (visible when not scrolled) */}
-        {!scrolled && (
-          <div className="max-w-2xl mx-auto px-4 pt-2 pb-3">
-            {showBack && !scrolled && (
-              <button onClick={handleBack} className="ios-text-btn flex items-center gap-0.5 text-[17px] mb-2">
-                <ArrowLeft className="h-5 w-5" />
-                <span>Retour</span>
-              </button>
-            )}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="ios-large-title">{title}</h1>
-                {extra}
-              </div>
-              <div className="flex items-center gap-1">{actions}</div>
+        {/* Large Title area (always in the DOM to prevent scroll jitter/collapse) */}
+        <div className="max-w-2xl mx-auto px-4 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] pb-3">
+          {showBack && (
+            <button 
+              onClick={handleBack} 
+              className={`ios-text-btn flex items-center gap-0.5 text-[17px] mb-2 transition-all duration-200 ${
+                scrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Retour</span>
+            </button>
+          )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className={`ios-large-title transition-all duration-200 ${scrolled ? 'opacity-0 scale-95 origin-left' : 'opacity-100'}`}>
+                {title}
+              </h1>
+              {extra}
             </div>
-            {subtitle && (
-              <p className="text-[13px] text-muted-foreground mt-1 px-4">{subtitle}</p>
-            )}
+            <div className={`flex items-center gap-1 transition-all duration-200 ${scrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              {actions}
+            </div>
           </div>
-        )}
+          {subtitle && (
+            <div className={`transition-all duration-200 ${scrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              {typeof subtitle === 'string' ? (
+                <p className="text-[13px] text-muted-foreground mt-1 px-4">{subtitle}</p>
+              ) : (
+                <div className="mt-1 px-4">{subtitle}</div>
+              )}
+            </div>
+          )}
+        </div>
       </>
     );
   }

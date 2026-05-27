@@ -815,7 +815,7 @@ export default function ListDetail() {
                 setIsEditingTitle(false);
               }
             }}
-            className="bg-slate-800/80 border-indigo-500 text-slate-100 px-3 py-1 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-[14px] font-semibold h-8 w-44"
+            className="bg-slate-800/80 border-indigo-500 text-slate-100 px-3 py-1 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-[16px] font-semibold h-8 w-44"
             autoFocus
           />
           <Button variant="ghost" size="icon" onClick={saveTitle} className="h-7 w-7 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 hover:text-emerald-300 rounded-md shrink-0">
@@ -1426,7 +1426,7 @@ export default function ListDetail() {
            THEMED FIXED BOTTOM INPUT INPUT AREA
            ========================================== */}
         {!isSortedByRayon && (
-          <div className={`fixed bottom-0 left-0 right-0 p-4 z-40 transition-all ${
+          <div className={`fixed bottom-0 left-0 right-0 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] z-40 transition-all ${
             theme === 'theme-ios' 
               ? 'bg-slate-950/70 backdrop-blur-2xl border-t border-white/10' 
               : theme === 'theme-samsung'
