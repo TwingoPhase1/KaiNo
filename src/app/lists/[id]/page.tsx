@@ -404,32 +404,34 @@ export default function ListDetail() {
                   })()}
                 </div>
                 
-                <div className="flex items-center gap-1 shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 ${
-                      theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-lg'
-                    }`}
-                    onClick={() => handleStartEdit(item)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`h-8 w-8 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 ${
-                      theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-lg'
-                    }`}
-                    onClick={() => deleteItem(item.id!)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {!isSortedByRayon && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 ${
+                        theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-lg'
+                      }`}
+                      onClick={() => handleStartEdit(item)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 ${
+                        theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-lg'
+                      }`}
+                      onClick={() => deleteItem(item.id!)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Collaborative "Je prends" row */}
-              {currentUser && (
+              {currentUser && !isSortedByRayon && (
                 <div className="flex items-center justify-between border-t border-slate-800/60 pt-2.5 mt-0.5">
                   <span className="text-[11px] text-slate-400 font-medium select-none">
                     {articleCategoryMap.get(item.name.toLowerCase()) ? (
@@ -953,8 +955,8 @@ export default function ListDetail() {
   if (isAuthenticated === false) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-4 overflow-hidden relative">
-        <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 blur-[120px] pointer-events-none animate-pulse duration-[10000ms]" />
-        <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-purple-500/10 dark:bg-purple-500/20 blur-[120px] pointer-events-none animate-pulse duration-[8000ms]" />
+        <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '10000ms' }} />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-purple-500/10 dark:bg-purple-500/20 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8000ms' }} />
 
         <Card className="w-full max-w-md border-slate-200/50 dark:border-slate-800/40 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-3xl animate-in fade-in zoom-in-95 duration-500">
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400" />
@@ -1105,7 +1107,13 @@ export default function ListDetail() {
   const productItems = items?.filter(item => !item.name.startsWith('__kaino_meta:')) || [];
   const metadataItems = items?.filter(item => item.name.startsWith('__kaino_meta:')) || [];
 
-  const activeItems = productItems.filter(item => !item.completed);
+  const activeItems = productItems.filter(item => {
+    if (item.completed) return false;
+    if (isSortedByRayon) {
+      return item.assignedTo === currentUser?.username;
+    }
+    return true;
+  });
   const completedItems = productItems.filter(item => item.completed);
   
   // Extract collaborators and owner details
@@ -1115,7 +1123,9 @@ export default function ListDetail() {
     
   const ownerItem = metadataItems.find(item => item.name.startsWith('__kaino_meta:owner:'));
   const ownerUsername = ownerItem ? ownerItem.name.replace('__kaino_meta:owner:', '') : null;
-  const isOwner = !ownerUsername || (currentUser && ownerUsername === currentUser.username);
+  const isOwner = currentUser && ownerUsername 
+    ? (ownerUsername === currentUser.username)
+    : (items !== undefined && !ownerUsername);
 
   // Visibility and Access Check
   const visibilityItem = metadataItems.find(item => item.name.startsWith('__kaino_meta:visibility:'));
@@ -1125,8 +1135,8 @@ export default function ListDetail() {
   if (currentUser && !isPublic && !isOwner && !collaboratorUsernames.includes(currentUser.username)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '6000ms' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '8000ms' }} />
 
         <Card className="w-full max-w-md border-rose-200 dark:border-rose-950/40 bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-3xl animate-in fade-in zoom-in-95 duration-500">
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-500" />
@@ -1726,7 +1736,7 @@ export default function ListDetail() {
         {/* List Management Glassmorphic Modal */}
         {showManageModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-slate-900/90 border border-slate-700/50 backdrop-blur-xl shadow-2xl rounded-3xl max-w-md w-full p-6 relative animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-900/90 border border-slate-700/50 backdrop-blur-xl shadow-2xl rounded-3xl max-w-md w-full p-6 relative animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/20">
               
               {/* Close button top right */}
               <button 
@@ -1902,7 +1912,7 @@ export default function ListDetail() {
         {/* Item Edit Glassmorphic Modal */}
         {editingItem && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-slate-900/90 border border-slate-700/50 backdrop-blur-xl shadow-2xl rounded-3xl max-w-md w-full p-6 relative animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-900/90 border border-slate-700/50 backdrop-blur-xl shadow-2xl rounded-3xl max-w-md w-full p-6 relative animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/20">
               
               {/* Close button top right */}
               <button 

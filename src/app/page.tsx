@@ -379,8 +379,8 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 text-slate-900 dark:text-slate-100 overflow-hidden relative">
         {/* Animated background highlights in dark mode */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/5 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6000ms]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8000ms]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/5 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '6000ms' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '8000ms' }} />
 
         <Card className="w-full max-w-md border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl text-slate-900 dark:text-slate-100 shadow-2xl relative overflow-hidden rounded-2xl">
           {/* Glowing top line */}
@@ -520,7 +520,7 @@ export default function Home() {
         <header className="flex justify-between items-center py-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">Kaino</h1>
-            <SyncIndicator />
+            <SyncIndicator compact hideCount />
           </div>
           <div className="flex items-center gap-2">
             {currentUser && (
@@ -610,7 +610,7 @@ export default function Home() {
         </div>
       </div>
       <footer className="w-full py-6 text-center text-xs text-muted-foreground border-t border-border/40 bg-slate-900/10 backdrop-blur-md mt-auto">
-        <p>Kaino v0.05</p>
+        <p>Kaino v0.06</p>
       </footer>
 
       {/* iOS Safari manual installation guidance drawer/overlay */}

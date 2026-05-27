@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export function PwaUpdatePrompt() {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -60,9 +62,9 @@ export function PwaUpdatePrompt() {
             <RefreshCw className="h-5 w-5 text-indigo-400 animate-spin" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-slate-100">Mise à jour disponible</h3>
+            <h3 className="text-sm font-semibold text-slate-100">{t('pwa_update_available')}</h3>
             <p className="text-xs text-slate-400 mt-1">
-              Une nouvelle version de Kaino est prête !
+              {t('pwa_update_desc')}
             </p>
           </div>
         </div>
@@ -73,14 +75,14 @@ export function PwaUpdatePrompt() {
             onClick={() => setShowUpdatePrompt(false)}
             className="flex-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
           >
-            Plus tard
+            {t('pwa_update_later')}
           </Button>
           <Button
             size="sm"
             onClick={handleUpdate}
             className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white"
           >
-            Mettre à jour
+            {t('pwa_update_btn')}
           </Button>
         </div>
       </div>

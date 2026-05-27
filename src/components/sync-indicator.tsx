@@ -7,9 +7,10 @@ import { useTranslation } from '@/lib/i18n';
 interface SyncIndicatorProps {
   compact?: boolean;
   peopleCount?: number;
+  hideCount?: boolean;
 }
 
-export function SyncIndicator({ compact = false, peopleCount = 1 }: SyncIndicatorProps) {
+export function SyncIndicator({ compact = false, peopleCount = 1, hideCount = false }: SyncIndicatorProps) {
   const [isOnline, setIsOnline] = useState(true);
   const { t } = useTranslation();
 
@@ -48,10 +49,12 @@ export function SyncIndicator({ compact = false, peopleCount = 1 }: SyncIndicato
             <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 animate-pulse"></span>
           )}
         </span>
-        <div className="flex items-center gap-1 text-[11px] text-slate-300 font-medium">
-          <Users className="w-3.5 h-3.5 text-indigo-400" />
-          <span>{peopleCount}</span>
-        </div>
+        {!hideCount && (
+          <div className="flex items-center gap-1 text-[11px] text-slate-300 font-medium">
+            <Users className="w-3.5 h-3.5 text-indigo-400" />
+            <span>{peopleCount}</span>
+          </div>
+        )}
       </div>
     );
   }
