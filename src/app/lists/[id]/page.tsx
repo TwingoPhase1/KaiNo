@@ -16,7 +16,6 @@ import { useTranslation, placeholders } from '@/lib/i18n';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import { useTheme, AppTheme } from '@/lib/useTheme';
 import { PlatformHeader } from '@/components/platform-header';
-import { PlatformNav } from '@/components/platform-nav';
 import { PlatformInput } from '@/components/platform-input';
 import { PlatformFab } from '@/components/platform-fab';
 
