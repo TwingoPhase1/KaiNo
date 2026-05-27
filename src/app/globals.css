@@ -178,51 +178,51 @@
   .theme-android {
     --radius: 16px;
     --font-family: 'Product Sans', 'Roboto', 'Google Sans', sans-serif;
-    --accent-rgb: 103, 80, 164; /* Material You Pastel Violet */
+    --accent-rgb: var(--android-dynamic-accent-rgb, 103, 80, 164); /* Material You Dynamic Accent or Pastel Violet fallback */
     --border-width: 0px;
     --transition-curve: cubic-bezier(0.2, 0, 0, 1); /* Material Ripple/Fast Ease */
     --transition-duration: 250ms;
     
     /* Android Light Theme Variables */
-    --background: 280 20% 98%; /* Soft lavender/pink tone #faf7fd */
-    --foreground: 280 30% 10%; /* Deep purple text #1d1625 */
-    --card: 280 20% 95%; /* Soft card tone #f3eefa */
-    --card-foreground: 280 30% 10%;
-    --border: 280 20% 92%;
-    --input: 280 20% 93%;
-    --primary: 280 60% 50%;
+    --background: var(--android-dynamic-bg-light, 280 20% 98%);
+    --foreground: var(--android-dynamic-fg-light, 280 30% 10%);
+    --card: var(--android-dynamic-card-light, 280 20% 95%);
+    --card-foreground: var(--android-dynamic-fg-light, 280 30% 10%);
+    --border: var(--android-dynamic-border-light, 280 20% 92%);
+    --input: var(--android-dynamic-input-light, 280 20% 93%);
+    --primary: var(--android-dynamic-primary-hsl, 280 60% 50%);
     --primary-foreground: 0 0% 100%;
-    --muted: 280 20% 92%;
-    --muted-foreground: 280 15% 45%;
+    --muted: var(--android-dynamic-border-light, 280 20% 92%);
+    --muted-foreground: var(--android-dynamic-muted-light, 280 15% 45%);
     
-    --card-bg: rgb(243, 238, 250);
-    --card-border: rgba(0, 0, 0, 0.02);
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    --card-bg: rgba(var(--accent-rgb), 0.08);
+    --card-border: rgba(var(--accent-rgb), 0.02);
+    --card-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.02);
     
     /* Light Mode helper overrides */
-    --card-light-bg: #f3eefa;
-    --border-light: rgba(0, 0, 0, 0.02);
-    --foreground-light: #1d1625;
-    --muted-light: #594f66;
-    --muted-light-more: #837693;
-    --input-light-bg: #ece5f6;
+    --card-light-bg: rgba(var(--accent-rgb), 0.08);
+    --border-light: rgba(var(--accent-rgb), 0.02);
+    --foreground-light: var(--android-dynamic-fg-light, #1d1625);
+    --muted-light: var(--android-dynamic-muted-light, #594f66);
+    --muted-light-more: var(--android-dynamic-muted-light, #837693);
+    --input-light-bg: rgba(var(--accent-rgb), 0.05);
   }
   
   .dark.theme-android,
   .theme-android.dark {
     /* Android Dark Theme Variables */
-    --background: 280 30% 8%; /* Dark purple #140f1a */
-    --foreground: 280 20% 95%;
-    --card: 280 25% 14%; /* Dark card #2b203a */
-    --card-foreground: 280 20% 95%;
-    --border: 280 20% 16%;
-    --input: 280 20% 18%;
-    --primary: 280 70% 70%;
-    --primary-foreground: 280 30% 10%;
-    --muted: 280 20% 16%;
-    --muted-foreground: 280 15% 65%;
+    --background: var(--android-dynamic-bg-dark, 280 30% 8%);
+    --foreground: var(--android-dynamic-fg-dark, 280 20% 95%);
+    --card: var(--android-dynamic-card-dark, 280 25% 14%);
+    --card-foreground: var(--android-dynamic-fg-dark, 280 20% 95%);
+    --border: var(--android-dynamic-border-dark, 280 20% 16%);
+    --input: var(--android-dynamic-input-dark, 280 20% 18%);
+    --primary: var(--android-dynamic-primary-hsl, 280 70% 70%);
+    --primary-foreground: var(--android-dynamic-bg-dark, 280 30% 10%);
+    --muted: var(--android-dynamic-border-dark, 280 20% 16%);
+    --muted-foreground: var(--android-dynamic-muted-dark, 280 15% 65%);
     
-    --card-bg: rgba(30, 26, 38, 1);
+    --card-bg: rgba(var(--accent-rgb), 0.15);
     --card-border: transparent;
     --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }

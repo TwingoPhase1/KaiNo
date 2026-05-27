@@ -780,6 +780,29 @@ export default function Home() {
         Kaino v0.06 • {getThemeLabel(theme)}
       </div>
 
+      {/* DEVELOPMENT DEV TOOLS - TEMPORARY THEME SELECTOR */}
+      <div className="fixed bottom-3 left-4 z-50 flex items-center gap-2 bg-slate-900/90 border border-slate-700/60 rounded-full px-3 py-1.5 shadow-xl text-xs backdrop-blur-md text-slate-100 font-sans select-none">
+        <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider">Dev:</span>
+        <select
+          value={theme}
+          onChange={(e) => {
+            const newTheme = e.target.value;
+            localStorage.setItem('kaino-dev-theme', newTheme);
+            const isDark = document.documentElement.classList.contains('dark') || 
+                           window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.className = newTheme + (isDark ? ' dark' : '');
+            (window as any).__THEME__ = newTheme;
+            window.location.reload();
+          }}
+          className="bg-transparent border-none text-slate-100 font-semibold focus:outline-none cursor-pointer pr-1 text-[11px] outline-none"
+        >
+          <option value="theme-generic" className="bg-slate-900 text-slate-100">💻 Default</option>
+          <option value="theme-samsung" className="bg-slate-900 text-slate-100">📱 Samsung</option>
+          <option value="theme-ios" className="bg-slate-900 text-slate-100">🍎 iOS</option>
+          <option value="theme-android" className="bg-slate-900 text-slate-100">🤖 Android</option>
+        </select>
+      </div>
+
       {/* iOS Safari manual installation guidance drawer/overlay */}
       {showIOSInstructions && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">

@@ -59,15 +59,21 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var ua = navigator.userAgent || '';
-                  var theme = 'theme-generic';
+                  var theme = null;
+                  try {
+                    theme = localStorage.getItem('kaino-dev-theme');
+                  } catch (e) {}
                   
-                  if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
-                    theme = 'theme-samsung';
-                  } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-                    theme = 'theme-ios';
-                  } else if (/Android/i.test(ua)) {
-                    theme = 'theme-android';
+                  if (!theme) {
+                    var ua = navigator.userAgent || '';
+                    theme = 'theme-generic';
+                    if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
+                      theme = 'theme-samsung';
+                    } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                      theme = 'theme-ios';
+                    } else if (/Android/i.test(ua)) {
+                      theme = 'theme-android';
+                    }
                   }
                   
                   // Auto-generate dark theme based on system preference
