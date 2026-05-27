@@ -301,20 +301,20 @@
 
 /* Theme Card base */
 .theme-card {
-  background: var(--card-bg);
-  border: var(--border-width) solid var(--card-border);
-  border-radius: var(--radius);
-  box-shadow: var(--card-shadow);
+  background: var(--card-bg) !important;
+  border: var(--border-width) solid var(--card-border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--card-shadow) !important;
   transition: all var(--transition-duration) var(--transition-curve);
 }
 
 .theme-ios .theme-card {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
 .theme-samsung .theme-card {
-  margin: 0.5rem;
+  margin: 0.25rem 0.5rem !important;
 }
 
 /* Theme Button base */

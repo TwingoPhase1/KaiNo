@@ -72,6 +72,19 @@ export default function ListDetail() {
   
   // Device-Aware Theme
   const theme = useTheme();
+
+  const getThemeLabel = (themeName: string) => {
+    switch (themeName) {
+      case 'theme-samsung':
+        return 'Samsung One UI';
+      case 'theme-android':
+        return 'Android Material You';
+      case 'theme-ios':
+        return 'iOS Safari';
+      default:
+        return 'Generic Default';
+    }
+  };
   
   // Dynamic translations
   const { t, loadingTranslations, lang } = useTranslation();
@@ -2012,6 +2025,11 @@ export default function ListDetail() {
             </div>
           </div>
         )}
+
+        {/* DISCREET BOTTOM-RIGHT FOOTER */}
+        <div className="fixed bottom-3 right-4 text-[10px] text-slate-400 dark:text-slate-500/70 font-sans tracking-tight pointer-events-none select-none z-50 hover:opacity-100 transition-opacity">
+          Kaino v0.06 • {getThemeLabel(theme)}
+        </div>
       </div>
     </AnimatedContainer>
   );

@@ -7,17 +7,20 @@ import { SyncIndicator } from '@/components/sync-indicator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ShoppingBag, Settings, Fingerprint, Loader2, LogOut, Key, User, ShieldAlert, Sparkles, Download, Share, X } from 'lucide-react';
+import { ShoppingBag, Settings, Fingerprint, Loader2, LogOut, Key, User, ShieldAlert, Sparkles, Download, Share, X, Search, Plus, ChevronRight } from 'lucide-react';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { useTranslation } from '@/lib/i18n';
+import { useTheme } from '@/lib/useTheme';
 
 /**
  * Home - Premium Glassmorphic Collaborative Dashboard for Kaino
  * Highly translated using local/server-aware translation hook.
  */
 export default function Home() {
+  const theme = useTheme();
   const router = useRouter();
   const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Dynamic Translations Hook
@@ -514,6 +517,23 @@ export default function Home() {
     );
   }
 
+  const filteredLists = lists.filter((list) =>
+    list.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getThemeLabel = (themeName: string) => {
+    switch (themeName) {
+      case 'theme-samsung':
+        return 'Samsung One UI';
+      case 'theme-android':
+        return 'Android Material You';
+      case 'theme-ios':
+        return 'iOS Safari';
+      default:
+        return 'Generic Default';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
       <div className="max-w-4xl mx-auto p-4 w-full flex-grow">
@@ -572,46 +592,193 @@ export default function Home() {
             </Card>
           )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5" />
-                {t('dashboard_lists_title')}
-              </CardTitle>
-              <CardDescription>
-                {t('dashboard_lists_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {lists.length > 0 && (
-                <div className="space-y-3 mb-6">
-                  {lists.map((list) => (
-                    <div 
-                      key={list.id} 
+          {/* SEARCH BAR & CREATE BUTTON CONTAINER */}
+          <div className="flex gap-3 w-full items-center mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                type="text"
+                placeholder={t('search_placeholder') || "Rechercher..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`pl-10 w-full transition-all ${
+                  theme === 'theme-samsung'
+                    ? 'rounded-2xl border-none bg-slate-100/50 dark:bg-slate-800/40 focus-visible:ring-2 focus-visible:ring-indigo-500/20 py-5'
+                    : theme === 'theme-android'
+                    ? 'rounded-full border-none bg-violet-100/30 dark:bg-violet-950/20 focus-visible:ring-2 focus-visible:ring-primary/20 py-5 pl-11'
+                    : theme === 'theme-ios'
+                    ? 'rounded-xl border-slate-200 dark:border-slate-800 bg-slate-100/40 dark:bg-slate-900/50 py-5 pl-10 focus-visible:ring-0 focus-visible:border-primary'
+                    : 'rounded-md'
+                }`}
+              />
+            </div>
+            <Button
+              onClick={() => router.push('/lists/new')}
+              className={`theme-btn font-semibold gap-1.5 shrink-0 ${
+                theme === 'theme-samsung'
+                  ? 'rounded-2xl bg-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/10 px-5 py-5 h-auto text-sm'
+                  : theme === 'theme-android'
+                  ? 'rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow px-5 py-5 h-auto ripple text-sm'
+                  : theme === 'theme-ios'
+                  ? 'rounded-xl bg-primary text-white hover:bg-primary/90 px-4 py-5 h-auto text-sm font-medium'
+                  : 'rounded-md'
+              }`}
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t('dashboard_lists_create_btn') || "Créer une liste"}</span>
+            </Button>
+          </div>
+
+          {/* SEQUENTIAL LISTS FLOW */}
+          <div className="space-y-3.5">
+            {filteredLists.length > 0 ? (
+              filteredLists.map((list) => {
+                if (theme === 'theme-samsung') {
+                  return (
+                    <div
+                      key={list.id}
                       onClick={() => router.push(`/lists/${list.id}`)}
-                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent cursor-pointer transition-colors"
+                      className="group flex items-center justify-between p-5 rounded-[26px] bg-white dark:bg-[#212124] shadow-[0_8px_24px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_12px_32px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-all duration-200 cursor-pointer select-none border border-slate-100/10"
                     >
-                      <div>
-                        <h3 className="font-medium">{list.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{t('sharing')}: {list.shareId}</p>
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-[20px] shadow-inner">
+                          <ShoppingBag className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-[17px] text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
+                            {list.name}
+                          </h3>
+                          <p className="text-[12px] text-slate-400 dark:text-slate-500 mt-1 font-medium">
+                            {t('sharing')}: {list.shareId}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
-                        {t('dashboard_lists_open')}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full font-bold select-none">
+                          {t('dashboard_lists_open') || "Ouvrir"}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-              <Button onClick={() => router.push('/lists/new')} className="w-full">
-                {t('dashboard_lists_create_btn')}
-              </Button>
-            </CardContent>
-          </Card>
+                  );
+                }
+
+                if (theme === 'theme-ios') {
+                  return (
+                    <div
+                      key={list.id}
+                      onClick={() => router.push(`/lists/${list.id}`)}
+                      className="group flex items-center justify-between p-4 bg-white/95 dark:bg-[#1c1c1e]/90 backdrop-blur-md rounded-2xl hover:bg-slate-50 dark:hover:bg-[#2c2c2e]/90 active:opacity-75 transition-all cursor-pointer border border-slate-200/50 dark:border-white/5 select-none"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
+                          <ShoppingBag className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold text-[16px] text-black dark:text-white tracking-tight">
+                            {list.name}
+                          </h3>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            ID: {list.shareId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-slate-400">
+                        <span className="text-[12px] opacity-80 mr-1">
+                          {t('dashboard_lists_open') || "Ouvrir"}
+                        </span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (theme === 'theme-android') {
+                  return (
+                    <div
+                      key={list.id}
+                      onClick={() => router.push(`/lists/${list.id}`)}
+                      className="group flex items-center justify-between p-5 rounded-[22px] bg-violet-100/30 dark:bg-violet-950/15 hover:bg-violet-100/50 dark:hover:bg-violet-950/25 active:scale-[0.97] ripple transition-all cursor-pointer border border-transparent select-none"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-violet-500/20 text-violet-600 dark:text-violet-300 rounded-full">
+                          <ShoppingBag className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
+                            {list.name}
+                          </h3>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                            {t('sharing')}: {list.shareId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-violet-500/10 text-violet-700 dark:text-violet-300 px-3 py-1 rounded-full font-semibold">
+                          {t('dashboard_lists_open') || "Ouvrir"}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-violet-400" />
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={list.id}
+                    onClick={() => router.push(`/lists/${list.id}`)}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border/80 bg-card hover:bg-accent cursor-pointer transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium text-base">{list.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">{t('sharing')}: {list.shareId}</p>
+                    </div>
+                    <div className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                      {t('dashboard_lists_open') || "Ouvrir"}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={`flex flex-col items-center justify-center p-12 text-center border border-dashed ${
+                theme === 'theme-samsung'
+                  ? 'rounded-[26px] bg-white/50 dark:bg-[#212124]/30 border-slate-200 dark:border-slate-800'
+                  : theme === 'theme-android'
+                  ? 'rounded-[22px] bg-violet-100/10 dark:bg-violet-950/5 border-violet-200/40 dark:border-violet-950/20'
+                  : theme === 'theme-ios'
+                  ? 'rounded-2xl bg-white/30 dark:bg-[#1c1c1e]/30 border-slate-200/40 dark:border-slate-800/40'
+                  : 'rounded-lg border-muted'
+              }`}>
+                <ShoppingBag className={`h-12 w-12 text-muted-foreground/40 mb-4 animate-pulse`} />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">
+                  {searchQuery ? (t('no_lists_found') || "Aucune liste trouvée") : (t('no_lists_yet') || "Aucune liste disponible")}
+                </h3>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1 max-w-sm">
+                  {searchQuery 
+                    ? (t('try_different_search') || "Essayez d'ajuster votre terme de recherche.")
+                    : (t('create_first_list_desc') || "Commencez dès aujourd'hui en créant votre première liste de courses collaborative.")
+                  }
+                </p>
+                {!searchQuery && (
+                  <Button 
+                    onClick={() => router.push('/lists/new')}
+                    className={`mt-4 ${
+                      theme === 'theme-samsung' ? 'rounded-2xl' : theme === 'theme-android' ? 'rounded-full' : theme === 'theme-ios' ? 'rounded-xl' : ''
+                    }`}
+                  >
+                    {t('dashboard_lists_create_btn') || "Créer une liste"}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      <footer className="w-full py-6 text-center text-xs text-muted-foreground border-t border-border/40 bg-slate-900/10 backdrop-blur-md mt-auto">
-        <p>Kaino v0.06</p>
-      </footer>
+
+      {/* DISCREET BOTTOM-RIGHT FOOTER */}
+      <div className="fixed bottom-3 right-4 text-[10px] text-slate-400 dark:text-slate-500/70 font-sans tracking-tight pointer-events-none select-none z-50 hover:opacity-100 transition-opacity">
+        Kaino v0.06 • {getThemeLabel(theme)}
+      </div>
 
       {/* iOS Safari manual installation guidance drawer/overlay */}
       {showIOSInstructions && (

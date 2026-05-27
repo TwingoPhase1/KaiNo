@@ -1,4 +1,4 @@
-# 🛒 Kaino v0.05 — Liste de Courses Collaborative, Offline-First & Auto-Adaptative
+# 🛒 Kaino v0.06 — Liste de Courses Collaborative, Offline-First & Auto-Adaptative
 
 
 
