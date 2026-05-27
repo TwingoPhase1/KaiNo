@@ -88,6 +88,55 @@ Kaino est entièrement conteneurisé. La configuration Docker Compose gère auto
 
 ---
 
+## 💾 Persistance & Portabilité inter-machines (Docker Volumes)
+
+Par défaut, Kaino utilise des volumes Docker nommés pour stocker vos données de manière isolée et performante :
+* **PostgreSQL** : Les données de vos listes sont stockées dans le volume `postgres-data`.
+* **Electric SQL** : Les conteneurs Electric SQL sont stateless par défaut.
+
+Si vous souhaitez arrêter votre stack sans perdre vos données, exécutez simplement `docker compose down`. Les volumes nommés seront conservés en toute sécurité par Docker et automatiquement re-montés lors du prochain `docker compose up`.
+
+### 📂 Mode Ultra-Portable (Sauvegarde et déplacement physique inter-PC)
+
+Si vous souhaitez stocker vos bases de données **directement à l'intérieur du dossier de votre projet** pour pouvoir copier/coller ou zipper le dossier, le déplacer sur une clé USB (ou un autre ordinateur) et le relancer instantanément avec l'intégralité de vos listes et de vos comptes sans rien perdre, suivez ce guide :
+
+#### 1. Configuration locale de `docker-compose.yml`
+Modifiez les chemins de volumes dans votre `docker-compose.yml` local pour pointer vers des dossiers relatifs (bind mounts) au lieu de volumes nommés gérés par Docker, et activez le répertoire persistant d'Electric :
+
+```yaml
+services:
+  postgres:
+    # ...
+    volumes:
+      - ./db/postgres-data:/var/lib/postgresql/data # <-- Dossier local dans le projet
+
+  electric:
+    # ...
+    environment:
+      # ...
+      - ELECTRIC_STORAGE_DIR=/app/persistent # <-- Indique à Electric d'écrire sur le disque
+    volumes:
+      - ./db/electric-data:/app/persistent # <-- Dossier local dans le projet
+```
+
+*(Note : Retirez ensuite le bloc `volumes:` déclarant `postgres-data` tout en bas de votre fichier `docker-compose.yml`)*
+
+#### 2. Sécurisation Git
+Pour éviter que vos bases de données privées ne soient poussées par accident sur votre dépôt GitHub public, ajoutez ces deux entrées dans votre fichier `.gitignore` local :
+```text
+db/postgres-data/
+db/electric-data/
+```
+
+#### 3. Déplacement du projet
+Désormais, tout votre historique applicatif est stocké dans le dossier `db/` du projet. Pour migrer Kaino sur un autre ordinateur :
+1. Arrêtez la stack : `docker compose down`
+2. Compressez ou copiez le dossier `KaiNo` sur votre clé USB (les dossiers `db/postgres-data` et `db/electric-data` y seront inclus).
+3. Collez le dossier sur l'autre PC et lancez : `docker compose up -d`
+4. L'application démarrera instantanément avec toutes vos données intactes !
+
+---
+
 ## 🔧 Variables d'Environnement
 
 Le fichier `.env.local` permet de configurer l'application :

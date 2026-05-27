@@ -6,7 +6,7 @@ services:
       - POSTGRES_PASSWORD=proxy_password
       - POSTGRES_DB=kaino
     volumes:
-      - ./db/postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     command: postgres -c wal_level=logical
     networks:
       - kaino-network
@@ -19,9 +19,6 @@ services:
       - LOGICAL_PUBLISHER_HOST=electric
       - PG_PROXY_PASSWORD=proxy_password
       - AUTH_MODE=insecure
-      - ELECTRIC_STORAGE_DIR=/app/persistent
-    volumes:
-      - ./db/electric-data:/app/persistent
     ports:
       - "5133:5133"
     depends_on:
@@ -45,6 +42,10 @@ services:
     restart: unless-stopped
     networks:
       - kaino-network
+
+volumes:
+  postgres-data:
+    driver: local
 
 networks:
   kaino-network:
