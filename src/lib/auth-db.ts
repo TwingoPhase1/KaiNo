@@ -71,8 +71,15 @@ export async function ensureAuthTables() {
     const tables = ['admin_users', 'admin_credentials', 'lists', 'list_items', 'article_references'];
     for (const table of tables) {
       try {
-        await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
-        console.log(`🔌 Table ${table} successfully electrified!`);
+        try {
+          // Try standard PG function syntax natively provided by the Electric SQL extension
+          await query(`SELECT electric.electrify('${table}');`);
+          console.log(`🔌 Table ${table} successfully electrified via SELECT!`);
+        } catch (selectErr) {
+          // Fallback to ALTER TABLE syntax
+          await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
+          console.log(`🔌 Table ${table} successfully electrified via ALTER TABLE!`);
+        }
       } catch (electricError: any) {
         // Suppress error if already electrified or if Electric functions don't exist yet
         console.log(`ℹ️ ElectricSQL not ready yet or table ${table} already electrified: ${electricError.message}`);
