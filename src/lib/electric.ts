@@ -18,8 +18,23 @@ export const initElectric = async () => {
 
   electricPromise = (async () => {
     try {
+      let electricUrl = process.env.NEXT_PUBLIC_ELECTRIC_URL || 'http://localhost:5133';
+      
+      // Dynamic host resolution ONLY if the configured URL points to localhost (default/development)
+      // and we are accessing the app from another device (like a mobile phone on the local network)
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        const isLocalhostConfigured = electricUrl.includes('localhost') || electricUrl.includes('127.0.0.1');
+        
+        if (isLocalhostConfigured && hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+          // Resolve Electric SQL to the same host on port 5133 for local testing/PWA on phones
+          electricUrl = `http://${hostname}:5133`;
+          console.log(`🔌 Dynamic Local Network Electric SQL URL resolved: ${electricUrl}`);
+        }
+      }
+
       const config = {
-        url: process.env.NEXT_PUBLIC_ELECTRIC_URL || 'http://localhost:5133',
+        url: electricUrl,
         debug: process.env.NODE_ENV === 'development',
       };
 
