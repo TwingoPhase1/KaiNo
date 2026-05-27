@@ -72,10 +72,10 @@ export async function ensureAuthTables() {
     for (const table of tables) {
       try {
         try {
-          // Try standard PG function syntax natively provided by the Electric SQL extension
-          await query(`SELECT electric.electrify('${table}');`);
-          console.log(`🔌 Table ${table} successfully electrified via SELECT!`);
-        } catch (selectErr) {
+          // Try standard PG CALL procedure syntax natively provided by the Electric SQL extension
+          await query(`CALL electric.electrify('${table}');`);
+          console.log(`🔌 Table ${table} successfully electrified via CALL!`);
+        } catch (callErr) {
           // Fallback to ALTER TABLE syntax
           await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
           console.log(`🔌 Table ${table} successfully electrified via ALTER TABLE!`);

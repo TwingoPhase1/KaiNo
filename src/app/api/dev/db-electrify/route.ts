@@ -6,7 +6,7 @@ import { query } from '@/lib/server-db';
 /**
  * GET /api/dev/db-electrify
  * Force tables electrification and return exact error logs on failure.
- * Tries both 'ALTER TABLE ENABLE ELECTRIC' and 'SELECT electric.electrify(...)'
+ * Tries CALL electric.electrify('table') procedure syntax.
  */
 export async function GET() {
   const results: Record<string, { success: boolean; method: string; message: string; error?: any }> = {};
@@ -14,15 +14,15 @@ export async function GET() {
 
   for (const table of tables) {
     let success = false;
-    let method = 'ALTER TABLE';
+    let method = 'CALL electric.electrify';
     let message = '';
     let errorDetail: any = null;
 
-    // Method A: ALTER TABLE ENABLE ELECTRIC
+    // Method A: CALL electric.electrify('table_name')
     try {
-      await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
+      await query(`CALL electric.electrify('${table}');`);
       success = true;
-      message = '🔌 Table electrified successfully via ALTER TABLE!';
+      message = '🔌 Table electrified successfully via CALL electric.electrify!';
     } catch (e: any) {
       errorDetail = {
         code: e.code,
@@ -31,13 +31,13 @@ export async function GET() {
       };
     }
 
-    // Method B: SELECT electric.electrify('table_name')
+    // Method B: CALL electric.electrify('public.table_name')
     if (!success) {
       try {
-        method = 'SELECT electric.electrify';
-        await query(`SELECT electric.electrify('${table}');`);
+        method = 'CALL electric.electrify (schema qualified)';
+        await query(`CALL electric.electrify('public.${table}');`);
         success = true;
-        message = '🔌 Table electrified successfully via SELECT electric.electrify!';
+        message = '🔌 Table electrified successfully via CALL electric.electrify(public.table)!';
         errorDetail = null;
       } catch (e: any) {
         errorDetail = {
@@ -48,13 +48,13 @@ export async function GET() {
       }
     }
 
-    // Method C: SELECT electric.electrify('public.table_name')
+    // Method C: Fallback to ALTER TABLE
     if (!success) {
       try {
-        method = 'SELECT electric.electrify (schema qualified)';
-        await query(`SELECT electric.electrify('public.${table}');`);
+        method = 'ALTER TABLE';
+        await query(`ALTER TABLE ${table} ENABLE ELECTRIC;`);
         success = true;
-        message = '🔌 Table electrified successfully via SELECT electric.electrify(public.table)!';
+        message = '🔌 Table electrified successfully via ALTER TABLE ENABLE ELECTRIC!';
         errorDetail = null;
       } catch (e: any) {
         errorDetail = {
