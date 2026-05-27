@@ -2,16 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   SYSTEM FONT STACK — No external fonts. Uses the user's device font.
+   iOS → San Francisco, Pixel → Google Sans/Roboto, Samsung → One UI Sans
+   ========================================================================== */
+
 @layer base {
   :root {
+    /* SYSTEM FONT — adapts to device settings automatically */
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    
     /* DEFAULT LIGHT THEME */
-    --background: 210 20% 98%; /* #f8f9fa light background */
-    --foreground: 222.2 47.4% 11.2%; /* slate-900 */
-    --card: 0 0% 100%; /* white */
+    --background: 210 20% 98%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 243 75% 59%; /* Indigo */
+    --primary: 243 75% 59%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -25,10 +33,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 243 75% 59%;
     
-    /* Default / Generic variables */
     --radius: 6px;
-    --font-family: 'JetBrains Mono', 'Geist', monospace, system-ui, sans-serif;
-    --accent-rgb: 99, 102, 241; /* Indigo */
+    --accent-rgb: 99, 102, 241;
     --border-width: 1px;
     --transition-curve: linear;
     --transition-duration: 0ms;
@@ -38,7 +44,6 @@
   }
 
   .dark {
-    /* DEFAULT DARK THEME */
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
     --card: 224 71% 4%;
@@ -64,21 +69,18 @@
     --card-shadow: none;
   }
 
-  /* ==========================================
-     THEME OVERRIDES (DEVICE-AWARE MATRIX)
-     ========================================== */
-
-  /* 1. iOS Theme (Apple Style) */
+  /* ==========================================================================
+     iOS THEME — Human Interface Guidelines
+     ========================================================================== */
   .theme-ios {
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     --radius: 12px;
-    --font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --accent-rgb: 0, 122, 255; /* Apple System Blue */
+    --accent-rgb: 0, 122, 255;
     --border-width: 0.5px;
-    --transition-curve: cubic-bezier(0.25, 1, 0.5, 1); /* iOS Spring Curve */
+    --transition-curve: cubic-bezier(0.25, 1, 0.5, 1);
     --transition-duration: 400ms;
     
-    /* iOS Light Theme Variables */
-    --background: 240 5% 96%; /* #f2f2f7 Apple Background Gray */
+    --background: 240 5% 96%;
     --foreground: 0 0% 0%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 0%;
@@ -93,7 +95,6 @@
     --card-border: rgba(0, 0, 0, 0.08);
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     
-    /* Light Mode helper overrides */
     --card-light-bg: rgba(255, 255, 255, 0.8);
     --border-light: rgba(0, 0, 0, 0.08);
     --foreground-light: #000000;
@@ -104,7 +105,6 @@
   
   .dark.theme-ios,
   .theme-ios.dark {
-    /* iOS Dark Theme Variables */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 10%;
@@ -121,23 +121,24 @@
     --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
   }
 
-  /* 2. Samsung Theme (One UI Style) */
+  /* ==========================================================================
+     SAMSUNG THEME — One UI Design System
+     ========================================================================== */
   .theme-samsung {
+    --font-family: system-ui, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
     --radius: 26px;
-    --font-family: 'Samsung One', 'Segoe UI', Roboto, sans-serif;
-    --accent-rgb: 3, 102, 214; /* One UI Blue */
-    --border-width: 0px; /* One UI prefers borderless cards with soft shadow */
-    --transition-curve: cubic-bezier(0.4, 0, 0.2, 1); /* One UI Scale/Ease */
+    --accent-rgb: 3, 102, 214;
+    --border-width: 0px;
+    --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     --transition-duration: 300ms;
     
-    /* Samsung Light Theme Variables */
-    --background: 218 20% 96%; /* #f2f3f7 One UI background gray */
-    --foreground: 210 20% 12%; /* #1a1d21 dark text */
-    --card: 0 0% 100%; /* #ffffff pure white cards */
+    --background: 218 20% 96%;
+    --foreground: 210 20% 12%;
+    --card: 0 0% 100%;
     --card-foreground: 210 20% 12%;
     --border: 210 15% 92%;
     --input: 210 15% 91%;
-    --primary: 214 96% 43%; /* One UI Blue */
+    --primary: 214 96% 43%;
     --primary-foreground: 0 0% 100%;
     --muted: 210 10% 93%;
     --muted-foreground: 210 8% 45%;
@@ -146,7 +147,6 @@
     --card-border: rgba(0, 0, 0, 0.03);
     --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.02);
     
-    /* Light Mode helper overrides */
     --card-light-bg: #ffffff;
     --border-light: rgba(0, 0, 0, 0.04);
     --foreground-light: #16181c;
@@ -157,10 +157,9 @@
   
   .dark.theme-samsung,
   .theme-samsung.dark {
-    /* Samsung Dark Theme Variables */
-    --background: 240 4% 9%; /* #121212 One UI charcoal black */
+    --background: 240 4% 9%;
     --foreground: 240 5% 96%;
-    --card: 240 4% 16%; /* #212124 slightly lighter charcoal card */
+    --card: 240 4% 16%;
     --card-foreground: 240 5% 96%;
     --border: 240 4% 20%;
     --input: 240 4% 22%;
@@ -174,16 +173,17 @@
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
 
-  /* 3. Android Theme (Material Pixel Style) */
+  /* ==========================================================================
+     ANDROID/PIXEL THEME — Material Design 3 / Material You
+     ========================================================================== */
   .theme-android {
+    --font-family: system-ui, Roboto, 'Noto Sans', 'Segoe UI', sans-serif;
     --radius: 16px;
-    --font-family: 'Product Sans', 'Roboto', 'Google Sans', sans-serif;
-    --accent-rgb: var(--android-dynamic-accent-rgb, 103, 80, 164); /* Material You Dynamic Accent or Pastel Violet fallback */
+    --accent-rgb: var(--android-dynamic-accent-rgb, 103, 80, 164);
     --border-width: 0px;
-    --transition-curve: cubic-bezier(0.2, 0, 0, 1); /* Material Ripple/Fast Ease */
+    --transition-curve: cubic-bezier(0.2, 0, 0, 1);
     --transition-duration: 250ms;
     
-    /* Android Light Theme Variables */
     --background: var(--android-dynamic-bg-light, 280 20% 98%);
     --foreground: var(--android-dynamic-fg-light, 280 30% 10%);
     --card: var(--android-dynamic-card-light, 280 20% 95%);
@@ -199,7 +199,6 @@
     --card-border: rgba(var(--accent-rgb), 0.02);
     --card-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.02);
     
-    /* Light Mode helper overrides */
     --card-light-bg: rgba(var(--accent-rgb), 0.08);
     --border-light: rgba(var(--accent-rgb), 0.02);
     --foreground-light: var(--android-dynamic-fg-light, #1d1625);
@@ -210,7 +209,6 @@
   
   .dark.theme-android,
   .theme-android.dark {
-    /* Android Dark Theme Variables */
     --background: var(--android-dynamic-bg-dark, 280 30% 8%);
     --foreground: var(--android-dynamic-fg-dark, 280 20% 95%);
     --card: var(--android-dynamic-card-dark, 280 25% 14%);
@@ -227,16 +225,17 @@
     --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* 4. Fallback / Desktop (Generic Tech Style) */
+  /* ==========================================================================
+     GENERIC/DESKTOP THEME — Clean, minimal
+     ========================================================================== */
   .theme-generic {
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --radius: 6px;
-    --font-family: 'JetBrains Mono', 'Geist', monospace, sans-serif;
-    --accent-rgb: 79, 70, 229; /* Indigo */
+    --accent-rgb: 79, 70, 229;
     --border-width: 1px;
     --transition-curve: linear;
     --transition-duration: 100ms;
     
-    /* Generic Light Theme Variables */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
     --card: 210 40% 98%;
@@ -252,7 +251,6 @@
     --card-border: rgba(226, 232, 240, 0.8);
     --card-shadow: none;
     
-    /* Light Mode helper overrides */
     --card-light-bg: #f8fafc;
     --border-light: #e2e8f0;
     --foreground-light: #0f172a;
@@ -263,7 +261,6 @@
   
   .dark.theme-generic,
   .theme-generic.dark {
-    /* Generic Dark Theme Variables */
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
     --card: 224 71% 8%;
@@ -281,6 +278,9 @@
   }
 }
 
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
 @layer base {
   * {
     @apply border-border;
@@ -292,14 +292,14 @@
     color: hsl(var(--foreground));
     font-family: var(--font-family);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* ==========================================
-   THEME UTILITIES & MICRO-ANIMATIONS
-   ========================================== */
-
-/* Theme Card base */
+/* ==========================================================================
+   THEME CARD — Base + Platform Overrides
+   ========================================================================== */
 .theme-card {
   background: var(--card-bg) !important;
   border: var(--border-width) solid var(--card-border) !important;
@@ -317,79 +317,299 @@
   margin: 0.25rem 0.5rem !important;
 }
 
-/* Theme Button base */
+/* ==========================================================================
+   THEME BUTTON — Base + Press Effects
+   ========================================================================== */
 .theme-btn {
   border-radius: var(--radius);
   transition: transform var(--transition-duration) var(--transition-curve), opacity 0.2s ease;
 }
 
 .theme-ios .theme-btn:active {
-  transform: scale(0.96); /* iOS press shrinking */
+  transform: scale(0.96);
+  opacity: 0.8;
 }
 
 .theme-samsung .theme-btn:active {
-  transform: scale(0.94); /* Samsung UI deeper shrink */
+  transform: scale(0.94);
 }
 
-/* Theme Custom Checkbox */
-.theme-checkbox {
-  position: relative;
-  display: inline-flex;
+/* ==========================================================================
+   iOS STRUCTURAL COMPONENTS
+   ========================================================================== */
+
+/* iOS Tab Bar — Fixed bottom with blur */
+.ios-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  transition: background 0.3s ease;
+}
+
+html:not(.dark) .ios-tab-bar {
+  background: rgba(242, 242, 247, 0.72);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+.dark .ios-tab-bar {
+  background: rgba(0, 0, 0, 0.72);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.ios-tab-bar {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.ios-tab-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
+  gap: 2px;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.theme-checkbox input {
+html:not(.dark) .ios-tab-item { color: #8e8e93; }
+.dark .ios-tab-item { color: #636366; }
+
+html:not(.dark) .ios-tab-item.active { color: #007aff; }
+.dark .ios-tab-item.active { color: #0a84ff; }
+
+/* iOS Large Title */
+.ios-large-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.37px;
+  line-height: 1.15;
+  padding: 0 16px;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.ios-large-title.collapsed {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+/* iOS Inset Grouped List */
+.ios-inset-grouped {
+  margin: 0 16px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+html:not(.dark) .ios-inset-grouped {
+  background: rgba(255, 255, 255, 0.8);
+}
+.dark .ios-inset-grouped {
+  background: rgba(28, 28, 30, 0.7);
+}
+
+.ios-inset-grouped > * + * {
+  position: relative;
+}
+.ios-inset-grouped > * + *::before {
+  content: '';
   position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 0.5px;
+  background: rgba(60, 60, 67, 0.12);
+}
+.dark .ios-inset-grouped > * + *::before {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.checkmark {
-  height: 22px;
-  width: 22px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+/* iOS Text Button (secondary actions = no background) */
+.ios-text-btn {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 400;
+  -webkit-tap-highlight-color: transparent;
+}
+html:not(.dark) .ios-text-btn { color: #007aff; }
+.dark .ios-text-btn { color: #0a84ff; }
+.ios-text-btn:active { opacity: 0.6; }
+
+/* iOS Sticky Header with blur */
+.ios-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html:not(.dark) .ios-sticky-header {
+  background: rgba(242, 242, 247, 0.72);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+.dark .ios-sticky-header {
+  background: rgba(0, 0, 0, 0.72);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.ios-sticky-header.transparent {
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+/* iOS Search Bar */
+.ios-search-bar {
+  border-radius: 10px;
+  border: none;
+  font-size: 17px;
+  padding: 8px 12px 8px 36px;
+}
+html:not(.dark) .ios-search-bar { background: rgba(118, 118, 128, 0.12); color: #000; }
+.dark .ios-search-bar { background: rgba(118, 118, 128, 0.24); color: #fff; }
+.ios-search-bar::placeholder {
+  color: #8e8e93;
+}
+
+/* ==========================================================================
+   MATERIAL YOU (PIXEL) STRUCTURAL COMPONENTS
+   ========================================================================== */
+
+/* Material Bottom Navigation */
+.m3-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 80px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html:not(.dark) .m3-bottom-nav {
+  background: hsl(var(--background));
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.06);
+}
+.dark .m3-bottom-nav {
+  background: hsl(var(--card));
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.m3-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 0;
+  min-width: 64px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: hsl(var(--muted-foreground));
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.m3-nav-item.active {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+/* Material You Indicator Pill */
+.m3-nav-pill {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 32px;
+  border-radius: 16px;
+  background: rgba(var(--accent-rgb), 0.15);
+  z-index: -1;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Material FAB */
+.m3-fab {
+  position: fixed;
+  bottom: 96px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s var(--transition-curve);
+  z-index: 45;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+html:not(.dark) .m3-fab {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.dark .m3-fab {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.m3-fab:active {
+  transform: scale(0.92);
 }
 
-/* Circular iOS Checkbox filled with Blue on checked */
-.theme-ios .checkmark {
-  border-radius: 50%;
+/* Material Outlined TextField */
+.m3-outlined-field {
+  position: relative;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 16px 16px 8px;
+  transition: border-color 0.2s ease, border-width 0.1s ease;
 }
-.theme-ios input:checked ~ .checkmark {
-  background-color: rgb(0, 122, 255);
-  border-color: rgb(0, 122, 255);
-  transform: scale(1.1);
+.m3-outlined-field:focus-within {
+  border-color: hsl(var(--primary));
+  border-width: 2px;
+  padding: 15px 15px 7px;
+}
+.m3-outlined-field label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: hsl(var(--background));
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.2s ease;
+}
+.m3-outlined-field:focus-within label {
+  color: hsl(var(--primary));
+}
+.m3-outlined-field input {
+  background: transparent !important;
+  border: none !important;
+  outline: none;
+  width: 100%;
+  font-size: 16px;
+  padding: 0;
+  color: hsl(var(--foreground));
 }
 
-/* Samsung One UI large card checkboxes */
-.theme-samsung .checkmark {
-  border-radius: 6px;
-  height: 24px;
-  width: 24px;
-}
-.theme-samsung input:checked ~ .checkmark {
-  background-color: rgb(3, 102, 214);
-  border-color: rgb(3, 102, 214);
-}
-
-/* Android pill shapes & checkboxes */
-.theme-android .checkmark {
-  border-radius: 8px;
-  height: 20px;
-  width: 20px;
-}
-.theme-android input:checked ~ .checkmark {
-  background-color: rgb(103, 80, 164);
-  border-color: rgb(103, 80, 164);
+/* Material Top App Bar */
+.m3-top-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 4px;
+  min-height: 64px;
 }
 
 /* Android Ripple Click Effect */
@@ -421,11 +641,144 @@
   transition: 0s;
 }
 
-/* ==========================================
-   AUTOMATIC LIGHT THEME SHIM (OVERRIDE HARDCODED SLATE)
-   ========================================== */
+/* ==========================================================================
+   SAMSUNG ONE UI STRUCTURAL COMPONENTS
+   ========================================================================== */
+
+/* One UI Header Zone — Top 1/3 screen for reachability */
+.oneui-header-zone {
+  min-height: 33vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 20px 24px;
+}
+
+/* One UI Large Title */
+.oneui-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+/* One UI Card */
+.oneui-card {
+  border-radius: 24px;
+  padding: 20px;
+  margin: 8px 0;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+html:not(.dark) .oneui-card {
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+.dark .oneui-card {
+  background: hsl(240 4% 16%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+.oneui-card:active {
+  transform: scale(0.97);
+}
+
+/* One UI Search Bar */
+.oneui-search {
+  border-radius: 24px;
+  border: none;
+  font-size: 16px;
+  padding: 14px 16px 14px 44px;
+}
+html:not(.dark) .oneui-search { background: #ebedf0; color: #16181c; }
+.dark .oneui-search { background: hsl(240 4% 18%); color: hsl(240 5% 96%); }
+.oneui-search::placeholder {
+  color: #8a8f98;
+}
+
+/* One UI Pill Chip */
+.oneui-chip {
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+html:not(.dark) .oneui-chip { background: #ebedf0; color: #16181c; }
+.dark .oneui-chip { background: hsl(240 4% 22%); color: hsl(240 5% 96%); }
+
+/* ==========================================================================
+   THEME CHECKBOXES
+   ========================================================================== */
+.theme-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--transition-curve);
+}
+
+html:not(.dark) .checkmark {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* iOS circular checkbox */
+.theme-ios .checkmark {
+  border-radius: 50%;
+}
+.theme-ios input:checked ~ .checkmark {
+  background-color: rgb(0, 122, 255);
+  border-color: rgb(0, 122, 255);
+  transform: scale(1.1);
+}
+
+/* Samsung rounded-square checkbox */
+.theme-samsung .checkmark {
+  border-radius: 6px;
+  height: 24px;
+  width: 24px;
+}
+.theme-samsung input:checked ~ .checkmark {
+  background-color: rgb(3, 102, 214);
+  border-color: rgb(3, 102, 214);
+}
+
+/* Android pill-shaped checkbox */
+.theme-android .checkmark {
+  border-radius: 8px;
+  height: 20px;
+  width: 20px;
+}
+.theme-android input:checked ~ .checkmark {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+/* ==========================================================================
+   LIGHT THEME SHIM — Override hardcoded dark slate/indigo classes in light mode
+   ========================================================================== */
 html:not(.dark) {
-  /* Override bg-slate-950, bg-slate-900, etc. to match card/background theme variables */
   .bg-slate-950,
   .bg-slate-900,
   .bg-slate-900\/90,
@@ -447,7 +800,6 @@ html:not(.dark) {
     background-color: var(--input-light-bg, #ebedf0) !important;
   }
 
-  /* Text Overrides */
   .text-slate-100,
   .text-slate-200 {
     color: var(--foreground-light, #1a1d21) !important;
@@ -462,7 +814,6 @@ html:not(.dark) {
     color: var(--muted-light-more, #8a8f98) !important;
   }
 
-  /* Indigo overrides in light mode to remain readable and pop nicely */
   .text-indigo-300,
   .text-indigo-400 {
     color: hsl(var(--primary)) !important;
@@ -482,7 +833,6 @@ html:not(.dark) {
     background-color: rgba(var(--accent-rgb), 0.9) !important;
   }
 
-  /* Borders Overrides */
   .border-slate-800,
   .border-slate-800\/80,
   .border-slate-800\/60,
@@ -493,7 +843,6 @@ html:not(.dark) {
     border-color: var(--card-border) !important;
   }
   
-  /* Input Fields overrides */
   input, select, textarea {
     background-color: var(--input-light-bg, #ebedf0) !important;
     color: var(--foreground-light, #1a1d21) !important;
@@ -505,16 +854,13 @@ html:not(.dark) {
     opacity: 0.8;
   }
 
-  /* Specific card adjustments */
   .theme-card {
     background-color: var(--card-bg) !important;
     border-color: var(--card-border) !important;
     box-shadow: var(--card-shadow) !important;
   }
 
-  /* Clean up dialog/modal backgrounds in light mode */
   .bg-slate-950\/60 {
     background-color: rgba(0, 0, 0, 0.45) !important;
   }
 }
-

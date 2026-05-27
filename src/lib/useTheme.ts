@@ -1,6 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export type AppTheme = 'theme-ios' | 'theme-samsung' | 'theme-android' | 'theme-generic';
+
+/**
+ * Theme color mapping for meta theme-color tags (status bar fusion).
+ */
+const THEME_COLORS: Record<AppTheme, { light: string; dark: string }> = {
+  'theme-ios':     { light: '#f2f2f7', dark: '#000000' },
+  'theme-samsung': { light: '#f2f3f7', dark: '#121212' },
+  'theme-android': { light: '#fef7ff', dark: '#141218' },
+  'theme-generic': { light: '#f8f9fa', dark: '#030712' },
+};
+
+/**
+ * Theme display labels.
+ */
+const THEME_LABELS: Record<AppTheme, string> = {
+  'theme-ios': 'iOS',
+  'theme-samsung': 'Samsung One UI',
+  'theme-android': 'Material You',
+  'theme-generic': 'Generic',
+};
 
 /**
  * Converts RGB color channels to HSL (Hue, Saturation, Lightness).
@@ -95,51 +115,92 @@ function applyAndroidDynamicColors() {
 }
 
 /**
+ * Updates the <meta name="theme-color"> tags to match the current theme.
+ */
+function updateMetaThemeColor(theme: AppTheme) {
+  if (typeof document === 'undefined') return;
+  const colors = THEME_COLORS[theme] || THEME_COLORS['theme-generic'];
+  const metas = document.querySelectorAll('meta[name="theme-color"]');
+  if (metas.length >= 2) {
+    (metas[0] as HTMLMetaElement).content = colors.light;
+    (metas[1] as HTMLMetaElement).content = colors.dark;
+  }
+}
+
+/**
  * Custom React hook that resolves the current device-aware theme.
- * Returns the active theme string and guarantees hydration compatibility.
+ * Returns the active theme, dark mode state, a label, and a dev theme setter.
  */
 export function useTheme() {
   const [theme, setTheme] = useState<AppTheme>('theme-generic');
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     // A. Apply dynamic Android Material You colors from AccentColor
     applyAndroidDynamicColors();
 
-    // B. Check local storage manual selection override
+    // B. Detect dark mode
     if (typeof window !== 'undefined') {
-      let devTheme = null;
+      const darkMatch = window.matchMedia('(prefers-color-scheme: dark)');
+      setIsDark(darkMatch.matches);
+      
+      const handleDarkChange = (e: MediaQueryListEvent) => {
+        setIsDark(e.matches);
+      };
+      darkMatch.addEventListener('change', handleDarkChange);
+      
+      // C. Check local storage manual selection override
+      let devTheme: string | null = null;
       try {
         devTheme = localStorage.getItem('kaino-dev-theme');
       } catch (e) {}
       if (devTheme && ['theme-ios', 'theme-samsung', 'theme-android', 'theme-generic'].includes(devTheme)) {
         setTheme(devTheme as AppTheme);
-        return;
+        updateMetaThemeColor(devTheme as AppTheme);
+        return () => darkMatch.removeEventListener('change', handleDarkChange);
       }
 
-      // C. Fallback to anti-FOUC sniffed classes
+      // D. Fallback to anti-FOUC sniffed classes
       const classes = (window as any).__THEME__ || document.documentElement.className;
       const detectedTheme = classes.split(' ').find((c: string) => 
         ['theme-ios', 'theme-samsung', 'theme-android', 'theme-generic'].includes(c)
       );
       if (detectedTheme) {
         setTheme(detectedTheme as AppTheme);
-        return;
+        updateMetaThemeColor(detectedTheme as AppTheme);
+        return () => darkMatch.removeEventListener('change', handleDarkChange);
       }
-    }
 
-    // D. Client-side UA backup sniffing
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-    let resolvedTheme: AppTheme = 'theme-generic';
-    if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
-      resolvedTheme = 'theme-samsung';
-    } else if (/iPhone|iPad|iPod/i.test(ua) || (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-      resolvedTheme = 'theme-ios';
-    } else if (/Android/i.test(ua)) {
-      resolvedTheme = 'theme-android';
+      // E. Client-side UA backup sniffing
+      const ua = navigator.userAgent || '';
+      let resolvedTheme: AppTheme = 'theme-generic';
+      if (/Samsung|SamsungBrowser|SM-/i.test(ua)) {
+        resolvedTheme = 'theme-samsung';
+      } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        resolvedTheme = 'theme-ios';
+      } else if (/Android/i.test(ua)) {
+        resolvedTheme = 'theme-android';
+      }
+      
+      setTheme(resolvedTheme);
+      updateMetaThemeColor(resolvedTheme);
+      return () => darkMatch.removeEventListener('change', handleDarkChange);
     }
-    
-    setTheme(resolvedTheme);
   }, []);
 
-  return theme;
+  const setDevTheme = useCallback((newTheme: AppTheme) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('kaino-dev-theme', newTheme);
+    const currentIsDark = document.documentElement.classList.contains('dark') || 
+                          window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.className = newTheme + (currentIsDark ? ' dark' : '');
+    (window as any).__THEME__ = newTheme;
+    updateMetaThemeColor(newTheme);
+    setTheme(newTheme);
+    applyAndroidDynamicColors();
+  }, []);
+
+  const themeLabel = THEME_LABELS[theme] || 'Generic';
+
+  return { theme, isDark, themeLabel, setDevTheme };
 }

@@ -14,7 +14,11 @@ import { SwipeableItem } from '@/components/swipeable-item';
 import { SyncIndicator } from '@/components/sync-indicator';
 import { useTranslation, placeholders } from '@/lib/i18n';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import { useTheme } from '@/lib/useTheme';
+import { useTheme, AppTheme } from '@/lib/useTheme';
+import { PlatformHeader } from '@/components/platform-header';
+import { PlatformNav } from '@/components/platform-nav';
+import { PlatformInput } from '@/components/platform-input';
+import { PlatformFab } from '@/components/platform-fab';
 
 const CATEGORIES = [
   { id: 'Fruits & Légumes', label: 'Fruits & Légumes', emoji: '🥦' },
@@ -71,20 +75,7 @@ export default function ListDetail() {
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Device-Aware Theme
-  const theme = useTheme();
-
-  const getThemeLabel = (themeName: string) => {
-    switch (themeName) {
-      case 'theme-samsung':
-        return 'Samsung One UI';
-      case 'theme-android':
-        return 'Android Material You';
-      case 'theme-ios':
-        return 'iOS Safari';
-      default:
-        return 'Generic Default';
-    }
-  };
+  const { theme, isDark, themeLabel, setDevTheme } = useTheme();
   
   // Dynamic translations
   const { t, loadingTranslations, lang } = useTranslation();
@@ -1227,204 +1218,94 @@ export default function ListDetail() {
     <AnimatedContainer>
       <div className={`min-h-screen bg-background ${isSortedByRayon ? 'pb-12' : 'pb-32'} ${theme}`}>
         
-        {/* ==========================================
-           1. iOS STICKY APPLE-STYLE HEADER
-           ========================================== */}
-        {theme === 'theme-ios' && (
-          <header className={`sticky top-0 z-50 transition-all duration-300 ${
-            scrolled 
-              ? 'bg-slate-900/80 backdrop-blur-xl border-b border-white/10 py-3' 
-              : 'bg-transparent py-6'
-          }`}>
-            <div className="max-w-2xl mx-auto px-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="hover:bg-white/10 rounded-full">
-                  <ArrowLeft className="h-5 w-5 text-indigo-400" />
-                </Button>
-                {scrolled && (
-                  <h1 className="text-lg font-bold text-slate-100 tracking-tight animate-in fade-in slide-in-from-top-4 duration-200">
-                    {list.name}
-                  </h1>
-                )}
-              </div>
-              {!scrolled && (
-                <div className="text-left flex-1 pl-2">
-                  <div className="flex items-center gap-2">
-                    {renderEditableTitle("text-3xl font-extrabold")}
-                    <SyncIndicator compact peopleCount={peopleCount} />
-                  </div>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">
-                    {totalBudget > 0 ? `${totalBudget.toFixed(2)}€ • ` : ''}{completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
-                  </p>
-                </div>
-              )}
-              
-              {/* iOS style share actions */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isOwner && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setShowManageModal(true)} 
-                    className="hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400"
-                    title={t('manage_list_btn')}
-                  >
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setShowQrModal(true)} 
-                  className="hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400"
-                  title={t('qr_code_btn')}
-                >
-                  <QrCode className="h-5 w-5" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={copyShareLink} 
-                  className="hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400 relative"
-                  title={t('copy_link_btn')}
-                >
-                  {copyFeedback ? (
-                    <Check className="h-5 w-5 text-emerald-400" />
-                  ) : (
-                    <LinkIcon className="h-5 w-5" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </header>
-        )}
-
-        {/* ==========================================
-           2. SAMSUNG ONE UI 1/3 TOP STATS ZONE
-           ========================================== */}
-        {theme === 'theme-samsung' && (
-          <section className="bg-gradient-to-b from-indigo-950/20 to-transparent pt-12 pb-6 px-6 max-w-2xl mx-auto text-left select-none">
-            <div className="flex justify-between items-center">
-              <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full h-11 w-11 shadow">
-                <ArrowLeft className="h-5 w-5 text-indigo-300" />
-              </Button>
-              
-              {/* Samsung style share actions */}
-              <div className="flex items-center gap-2">
-                {isOwner && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowManageModal(true)} 
-                    className="bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>{t('manage_list_btn')}</span>
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setShowQrModal(true)} 
-                  className="bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200"
-                >
-                  <QrCode className="h-4 w-4" />
-                  <span>{t('qr_code_btn')}</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={copyShareLink} 
-                  className="bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200"
-                >
-                  {copyFeedback ? (
-                    <Check className="h-4 w-4 text-emerald-400 animate-in zoom-in-50" />
-                  ) : (
-                    <LinkIcon className="h-4 w-4" />
-                  )}
-                  <span>{copyFeedback ? t('share_link_copied') : t('copy_link_btn')}</span>
-                </Button>
-              </div>
-            </div>
-            
-            {/* Giant Title 1/3 height allocation */}
-            <div className="mt-8 space-y-2">
-              <div className="flex items-center gap-3">
-                {renderEditableTitle("text-4xl font-extrabold")}
-                <SyncIndicator compact peopleCount={peopleCount} />
-              </div>
-              <div className="flex items-center gap-3 pt-2 text-indigo-300 font-medium">
-                <span className="bg-indigo-600/20 px-3 py-1 rounded-full text-xs">
-                  {completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
+        <PlatformHeader
+          title={renderEditableTitle(
+            theme === 'theme-ios' 
+              ? "text-3xl font-extrabold" 
+              : theme === 'theme-samsung' 
+              ? "text-4xl font-extrabold" 
+              : "text-2xl font-bold"
+          )}
+          subtitle={
+            <div className="flex items-center gap-2 text-slate-400 font-medium">
+              <span className={theme === 'theme-samsung' ? 'bg-indigo-600/20 px-3 py-1 rounded-full text-xs font-bold text-indigo-300' : 'text-xs'}>
+                {completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
+              </span>
+              {totalBudget > 0 && (
+                <span className={theme === 'theme-samsung' ? 'bg-emerald-600/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold' : 'text-xs font-semibold'}>
+                  • {totalBudget.toFixed(2)}€
                 </span>
-                {totalBudget > 0 && (
-                  <span className="bg-emerald-600/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold">
-                    {totalBudget.toFixed(2)} €
-                  </span>
-                )}
-              </div>
+              )}
             </div>
-          </section>
-        )}
-
-        {/* ==========================================
-           3. STANDARD ANDROID & GENERIC HEADERS
-           ========================================== */}
-        {(theme === 'theme-android' || theme === 'theme-generic') && (
-          <header className="max-w-2xl mx-auto p-4 flex items-center justify-between py-6">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => router.push('/')} className={`${theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-none'} border border-slate-800`}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  {renderEditableTitle("text-2xl font-bold")}
-                  <SyncIndicator compact peopleCount={peopleCount} />
-                </div>
-                <p className="text-xs text-slate-400 font-medium">
-                  {totalBudget > 0 ? `${totalBudget.toFixed(2)}€ • ` : ''}{completedCount}/{totalItems} {t('list_completed_section').toLowerCase()}
-                </p>
-              </div>
-            </div>
-            
-            {/* Standard sharing buttons */}
-            <div className="flex items-center gap-2">
+          }
+          showBack={true}
+          extra={<SyncIndicator compact peopleCount={peopleCount} />}
+          isListDetail={true}
+          actions={
+            <>
               {isOwner && (
                 <Button 
                   variant="ghost" 
-                  size="sm" 
+                  size={theme === 'theme-ios' ? 'icon' : 'sm'} 
                   onClick={() => setShowManageModal(true)} 
-                  className={`${theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-none'} border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold`}
+                  className={
+                    theme === 'theme-ios' 
+                      ? 'hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400'
+                      : theme === 'theme-samsung'
+                      ? 'bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200'
+                      : theme === 'theme-android'
+                      ? 'rounded-full ripple border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                      : 'border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                  }
+                  title={t('manage_list_btn')}
                 >
-                  <Settings className="h-4 w-4 text-indigo-400" />
-                  <span>{t('manage_list_btn')}</span>
+                  <Settings className={theme === 'theme-ios' ? 'h-5 w-5' : 'h-4 w-4 text-indigo-400'} />
+                  {theme !== 'theme-ios' && <span>{t('manage_list_btn')}</span>}
                 </Button>
               )}
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size={theme === 'theme-ios' ? 'icon' : 'sm'} 
                 onClick={() => setShowQrModal(true)} 
-                className={`${theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-none'} border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold`}
+                className={
+                  theme === 'theme-ios' 
+                    ? 'hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400'
+                    : theme === 'theme-samsung'
+                    ? 'bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200'
+                    : theme === 'theme-android'
+                    ? 'rounded-full ripple border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                    : 'border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                }
+                title={t('qr_code_btn')}
               >
-                <QrCode className="h-4 w-4 text-indigo-400" />
-                <span>{t('qr_code_btn')}</span>
+                <QrCode className={theme === 'theme-ios' ? 'h-5 w-5' : 'h-4 w-4 text-indigo-400'} />
+                {theme !== 'theme-ios' && <span>{t('qr_code_btn')}</span>}
               </Button>
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size={theme === 'theme-ios' ? 'icon' : 'sm'} 
                 onClick={copyShareLink} 
-                className={`${theme === 'theme-android' ? 'rounded-full ripple' : 'rounded-none'} border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold`}
+                className={
+                  theme === 'theme-ios' 
+                    ? 'hover:bg-white/10 rounded-full h-9 w-9 text-indigo-400'
+                    : theme === 'theme-samsung'
+                    ? 'bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-full text-indigo-300 flex items-center gap-1.5 px-4 h-11 shadow font-semibold text-xs transition-all duration-200'
+                    : theme === 'theme-android'
+                    ? 'rounded-full ripple border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                    : 'border border-slate-800 flex items-center gap-1.5 px-3 h-10 text-xs font-semibold'
+                }
+                title={t('copy_link_btn')}
               >
                 {copyFeedback ? (
-                  <Check className="h-4 w-4 text-emerald-400 animate-in zoom-in-50" />
+                  <Check className={theme === 'theme-ios' ? 'h-5 w-5 text-emerald-400' : 'h-4 w-4 text-emerald-400 animate-in zoom-in-50'} />
                 ) : (
-                  <LinkIcon className="h-4 w-4 text-indigo-400" />
+                  <LinkIcon className={theme === 'theme-ios' ? 'h-5 w-5' : 'h-4 w-4 text-indigo-400'} />
                 )}
-                <span>{copyFeedback ? t('share_link_copied') : t('copy_link_btn')}</span>
+                {theme !== 'theme-ios' && <span>{copyFeedback ? t('share_link_copied') : t('copy_link_btn')}</span>}
               </Button>
-            </div>
-          </header>
-        )}
+            </>
+          }
+        />
 
         {/* ==========================================
            MAIN CONTENT BODY (COLLABORATIVE ITEMS LIST)
@@ -1540,17 +1421,7 @@ export default function ListDetail() {
           </div>
         </div>
 
-        {/* ==========================================
-           4. ANDROID FLOATING ACTION BUTTON (FAB)
-           ========================================== */}
-        {theme === 'theme-android' && newItem.trim() === '' && !isSortedByRayon && (
-          <Button
-            onClick={focusInput}
-            className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-2xl flex items-center justify-center z-50 ripple scale-in border-none"
-          >
-            <Plus className="h-6 w-6 text-white" />
-          </Button>
-        )}
+
 
         {/* ==========================================
            THEMED FIXED BOTTOM INPUT INPUT AREA
@@ -2028,7 +1899,7 @@ export default function ListDetail() {
 
         {/* DISCREET BOTTOM-RIGHT FOOTER */}
         <div className="fixed bottom-3 right-4 text-[10px] text-slate-400 dark:text-slate-500/70 font-sans tracking-tight pointer-events-none select-none z-50 hover:opacity-100 transition-opacity">
-          Kaino v0.06 • {getThemeLabel(theme)}
+          Kaino v0.07 • {themeLabel}
         </div>
 
         {/* DEVELOPMENT DEV TOOLS - TEMPORARY THEME SELECTOR */}
@@ -2036,15 +1907,7 @@ export default function ListDetail() {
           <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider">Dev:</span>
           <select
             value={theme}
-            onChange={(e) => {
-              const newTheme = e.target.value;
-              localStorage.setItem('kaino-dev-theme', newTheme);
-              const isDark = document.documentElement.classList.contains('dark') || 
-                             window.matchMedia('(prefers-color-scheme: dark)').matches;
-              document.documentElement.className = newTheme + (isDark ? ' dark' : '');
-              (window as any).__THEME__ = newTheme;
-              window.location.reload();
-            }}
+            onChange={(e) => setDevTheme(e.target.value as AppTheme)}
             className="bg-transparent border-none text-slate-100 font-semibold focus:outline-none cursor-pointer pr-1 text-[11px] outline-none"
           >
             <option value="theme-generic" className="bg-slate-900 text-slate-100">💻 Default</option>
@@ -2053,6 +1916,9 @@ export default function ListDetail() {
             <option value="theme-android" className="bg-slate-900 text-slate-100">🤖 Android</option>
           </select>
         </div>
+
+        {/* Platform Floating Action Button (FAB) */}
+        <PlatformFab onClick={focusInput} label="Ajouter un article" />
       </div>
     </AnimatedContainer>
   );
