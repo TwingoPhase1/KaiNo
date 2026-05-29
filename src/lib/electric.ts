@@ -1,5 +1,6 @@
 import { makeElectricContext } from 'electric-sql/react';
 import { ElectricDatabase, electrify } from 'electric-sql/wa-sqlite';
+import { insecureAuthToken } from 'electric-sql/auth';
 
 // This will be replaced by the generated client
 // For now, we define a minimal structure to allow development
@@ -41,6 +42,16 @@ export const initElectric = async () => {
 
       const conn = await ElectricDatabase.init('kaino.db');
       const electric = await electrify(conn, schema, config);
+      
+      // Connect to the Electric SQL Satellite replication service (required in 0.11 to start sync)
+      try {
+        const token = insecureAuthToken({ sub: 'kaino-user-session' });
+        console.log("🔌 Connecting to Electric SQL Satellite replication service...");
+        await electric.connect(token);
+        console.log("🔌 Electric SQL Satellite replication is now active!");
+      } catch (err: any) {
+        console.error("🔌 Failed to connect to Electric Satellite service:", err);
+      }
       
       // Establish active shape subscriptions to synchronise postgresql data with local SQLite DB
       if (electric.db) {
