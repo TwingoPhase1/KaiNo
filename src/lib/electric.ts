@@ -53,12 +53,18 @@ export const initElectric = async () => {
         console.error("🔌 Failed to connect to Electric Satellite service:", err);
         const errMsg = err?.message || String(err);
         if (errMsg.includes("Unknown schema version") || errMsg.includes("divergence between local client and server")) {
-          console.warn("⚠️ Schema mismatch detected! Wiping local IndexedDB 'kaino.db' and auto-reloading...");
-          if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
-            indexedDB.deleteDatabase("kaino.db");
-            setTimeout(() => {
-              window.location.reload();
-            }, 600);
+          const healKey = "kaino-db-healed-once";
+          if (typeof window !== 'undefined' && !sessionStorage.getItem(healKey)) {
+            sessionStorage.setItem(healKey, "true");
+            console.warn("⚠️ Schema mismatch detected! Wiping local IndexedDB 'kaino.db' and auto-reloading...");
+            if (typeof indexedDB !== 'undefined') {
+              indexedDB.deleteDatabase("kaino.db");
+              setTimeout(() => {
+                window.location.reload();
+              }, 600);
+            }
+          } else {
+            console.error("🔌 Schema mismatch persists even after wiping local database. The client-side bundle has an outdated schema. Please run 'npx electric-sql generate' on your Debian server and rebuild.");
           }
         }
       }
