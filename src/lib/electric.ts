@@ -24,11 +24,12 @@ export const initElectric = async () => {
       // and we are accessing the app from another device (like a mobile phone on the local network)
       if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
+        const protocol = window.location.protocol; // "http:" or "https:"
         const isLocalhostConfigured = electricUrl.includes('localhost') || electricUrl.includes('127.0.0.1');
         
         if (isLocalhostConfigured && hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
-          // Resolve Electric SQL to the same host on port 5133 for local testing/PWA on phones
-          electricUrl = `http://${hostname}:5133`;
+          // Resolve Electric SQL to the same host on port 5133 with the matching protocol (to prevent Mixed Content blocks on HTTPS)
+          electricUrl = `${protocol}//${hostname}:5133`;
           console.log(`🔌 Dynamic Local Network Electric SQL URL resolved: ${electricUrl}`);
         }
       }

@@ -19,6 +19,8 @@ COPY . .
 
 # Build Next.js with standalone output for minimal size
 ENV NEXT_TELEMETRY_DISABLED 1
+ARG NEXT_PUBLIC_ELECTRIC_URL
+ENV NEXT_PUBLIC_ELECTRIC_URL=$NEXT_PUBLIC_ELECTRIC_URL
 RUN npm run build
 
 # Ultra-lightweight runner stage
