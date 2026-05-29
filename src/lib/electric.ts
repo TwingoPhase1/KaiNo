@@ -51,6 +51,16 @@ export const initElectric = async () => {
         console.log("🔌 Electric SQL Satellite replication is now active!");
       } catch (err: any) {
         console.error("🔌 Failed to connect to Electric Satellite service:", err);
+        const errMsg = err?.message || String(err);
+        if (errMsg.includes("Unknown schema version") || errMsg.includes("divergence between local client and server")) {
+          console.warn("⚠️ Schema mismatch detected! Wiping local IndexedDB 'kaino.db' and auto-reloading...");
+          if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
+            indexedDB.deleteDatabase("kaino.db");
+            setTimeout(() => {
+              window.location.reload();
+            }, 600);
+          }
+        }
       }
       
       // Establish active shape subscriptions to synchronise postgresql data with local SQLite DB
